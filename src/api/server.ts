@@ -5,6 +5,8 @@
 import 'dotenv/config';
 
 import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { readFileSync, existsSync } from 'fs';
+import { join, extname } from 'path';
 import { processMessage, registerBuiltinTriggers, runScheduledCheck } from '../agent.js';
 import { parseICS, parseExcel, setImportedSchedule, clearImportedSchedule, getImportedSchedule } from '../services/scheduleImport.js';
 import { fetchAllCourses } from '../services/scheduleData.js';
@@ -81,6 +83,26 @@ const server = createServer(async (req, res) => {
   }
 
   try {
+    // ---- 静态文件（聊天 UI）----
+    if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
+      const publicDir = join(import.meta.dirname || __dirname, '../../public');
+      let filePath = join(publicDir, url.pathname === '/' ? 'index.html' : url.pathname);
+      if (existsSync(filePath) && !filePath.includes('..')) {
+        const ext = extname(filePath);
+        const mime: Record<string, string> = {
+          '.html': 'text/html; charset=utf-8',
+          '.css': 'text/css; charset=utf-8',
+          '.js': 'application/javascript; charset=utf-8',
+          '.json': 'application/json; charset=utf-8',
+          '.png': 'image/png',
+          '.svg': 'image/svg+xml',
+        };
+        res.writeHead(200, { 'Content-Type': mime[ext] || 'text/plain', 'Cache-Control': 'public, max-age=3600' });
+        res.end(readFileSync(filePath));
+        return;
+      }
+    }
+
     // ---- 对话接口 ----
     if (url.pathname === '/api/chat' && req.method === 'POST') {
       const body = await parseBody(req);
