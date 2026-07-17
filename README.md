@@ -5,6 +5,7 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green)](https://nodejs.org/)
+[![CI](https://github.com/ReZeroStarting/campus-Agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ReZeroStarting/campus-Agent/actions)
 
 ---
 
