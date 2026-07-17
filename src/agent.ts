@@ -9,7 +9,14 @@ import { checkTriggers, registerTrigger, resetCooldowns } from './core/triggers/
 import { handleShowerIntent, handleShowerDone } from './scenes/shower.js';
 import { handleScheduleQuery } from './scenes/schedule.js';
 import { handleCardQuery, checkLowBalance } from './scenes/card.js';
-import { getCardState, getShowerState, getWaterIntake, addWater } from './data/mock.js';
+import {
+  handlePackageQuery,
+  handleDeliveryQuery,
+  handleDeliverySummary,
+  handleRoutePlan,
+  handlePickupComplete,
+} from './scenes/delivery.js';
+import { getCardState, getShowerState, getWaterIntake, addWater, getActivePackages, getPickupPoints } from './data/mock.js';
 import { getUserHabits, getLongTermKnowledge } from './core/memory/engine.js';
 import { fetchWeather } from './services/weather.js';
 import { fetchAllCourses } from './services/scheduleData.js';
@@ -96,6 +103,28 @@ export async function processMessage(text: string): Promise<AgentResponse> {
     return handleSleepQuery();
   }
 
+  // 「取完了」/「拿完了」→ 标记快递或外卖已取
+  if (trimmed.includes('取完了') || trimmed.includes('拿完了') || trimmed.includes('拿到了') || trimmed.includes('取到了') || trimmed.includes('拿回来了')) {
+    recordMessage('agent', ''); // placeholder, handlePickupComplete will record
+    return handlePickupComplete(trimmed);
+  }
+
+  // 「取件码」→ 快速查看取件码
+  if (trimmed.includes('取件码') || trimmed.includes('货架号') || trimmed.includes('哪个柜')) {
+    const packages = getActivePackages().filter(p => p.status === '已到站');
+    if (packages.length === 0) {
+      return { text: '没有待取的快递。', suggestions: ['查快递', '查外卖'] };
+    }
+    const points = getPickupPoints();
+    const lines = packages.map(p => {
+      const point = points.find(pp => pp.id === p.pickupPoint);
+      return `${p.carrier} ${p.description || ''}: ${p.pickupCode}（${point?.name || p.pickupPoint}）`;
+    });
+    const msg = '📦 取件码：\n' + lines.join('\n');
+    recordMessage('agent', msg);
+    return { text: msg, suggestions: ['帮我规划路线', '查外卖'] };
+  }
+
   // ---- 意图识别 ----
 
   const intent = recognizeIntent(text);
@@ -148,6 +177,24 @@ export async function processMessage(text: string): Promise<AgentResponse> {
         text: `今日已饮水 ${water.current}ml（目标 ${water.goal}ml，完成 ${water.percent}%）。${remaining > 0 ? `还差 ${remaining}ml，记得多喝水哦！` : '已完成今日目标，很棒！🎉'}`,
         suggestions: ['记录喝水 200ml', '设置喝水提醒'],
       };
+      break;
+    }
+
+    case 'delivery': {
+      // 子意图路由
+      if (text.includes('外卖') && !text.includes('快递')) {
+        response = await handleDeliveryQuery();
+      } else if (text.includes('快递') && !text.includes('外卖')) {
+        response = await handlePackageQuery();
+      } else if (text.includes('路线') || text.includes('怎么拿') || text.includes('先去') || text.includes('规划')) {
+        response = await handleRoutePlan();
+      } else if (text.includes('取件码') || text.includes('哪个柜')) {
+        // 已在上面shortcut处理，这里兜底
+        response = await handlePackageQuery();
+      } else {
+        // 综合查询
+        response = await handleDeliverySummary();
+      }
       break;
     }
 
@@ -265,7 +312,7 @@ function getFallbackResponse(text: string): string {
   if (text.includes('晚安')) {
     return handleSleepQuery().text;
   }
-  return '抱歉，我还不太理解。\n\n我能帮你：\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"\n• 吃饭："中午吃什么"\n• 穿衣："穿什么"\n• 喝水："喝了200ml"\n• 睡眠："几点睡"';
+  return '抱歉，我还不太理解。\n\n我能帮你：\n• 快递："查快递" "取件码是多少"\n• 外卖："外卖到了吗"\n• 取件："帮我规划路线" "取完了"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"\n• 吃饭："中午吃什么"\n• 喝水："喝了200ml"\n• 睡眠："几点睡"';
 }
 
 // ---- 主动触发（由定时任务调用） ----

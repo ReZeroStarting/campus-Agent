@@ -116,6 +116,39 @@ async function main() {
   await demo('我要洗澡');
   await demo('洗完了');
 
+  // ============ 快递 & 外卖 ============
+  printDivider('场景七：快递 & 外卖 — 取件追踪+路线规划');
+
+  console.log('\n   [ 查快递状态 ]');
+  await wait(500);
+
+  await demo('查快递');
+
+  console.log('\n   [ 查外卖状态 ]');
+  await wait(500);
+
+  await demo('外卖到了吗');
+
+  console.log('\n   [ 综合待取清单 ]');
+  await wait(500);
+
+  await demo('有什么要拿的');
+
+  console.log('\n   [ 取件码查询 ]');
+  await wait(500);
+
+  await demo('取件码是多少');
+
+  console.log('\n   [ 路线规划 ]');
+  await wait(500);
+
+  await demo('帮我规划路线');
+
+  console.log('\n   [ 取完标记 ]');
+  await wait(500);
+
+  await demo('顺丰取完了');
+
   // ============ 主动触发 ============
   printDivider('场景六：主动服务 — 低余额自动提醒');
 
@@ -130,6 +163,9 @@ async function main() {
   console.log(`
   校园搭子 — 核心能力总结：
 
+  ✅  快递追踪：到站通知 + 取件码 + 路线规划
+  ✅  外卖追踪：实时配送状态 + 取餐提醒
+  ✅  路线规划：多取件点智能排序 + 时间预估
   ✅  意图识别：一句话触发服务链
   ✅  跨服务编排：课表+天气+一卡通并行查询
   ✅  多轮对话：上下文保持 + 指代消解
@@ -137,7 +173,7 @@ async function main() {
   ✅  闭环流程：洗澡→扣费→充值提醒
   ✅  场景联动：天气→穿衣、课表→吃饭→睡眠
 
-  3 个核心场景做深做透，完整闭环可演示。
+  5 个核心场景做深做透，完整闭环可演示。
 `);
 
   await wait(2000);

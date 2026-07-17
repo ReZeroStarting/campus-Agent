@@ -60,7 +60,7 @@ export async function handleScheduleQuery(dateStr?: string): Promise<{ response:
         const weatherInfo = weather
           ? `${weather.condition} ${weather.tempLow}°C~${weather.tempHigh}°C`
           : '';
-        return `${dateLabel}（周${weekDay}）没课！${weatherInfo ? `天气 ${weatherInfo}，${weather.tips}` : '好好休息吧！'}`;
+        return `${dateLabel}（周${weekDay}）没课！${weather ? `天气 ${weatherInfo}，${weather.tips}` : '好好休息吧！'}`;
       }
 
       const lines = courses.map((c) => {

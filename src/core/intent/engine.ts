@@ -64,6 +64,20 @@ const rules: IntentRule[] = [
     ],
     entities: ['timeRange'],
   },
+  {
+    category: 'delivery',
+    keywords: ['快递', '包裹', '取件', '外卖', '到了吗', '配送', '取餐', '取件码', '驿站', '菜鸟', '快递柜'],
+    patterns: [
+      /(有|查|看)(快递|包裹|外卖)/,
+      /(快递|外卖)(到|在|怎么)/,
+      /(取|拿)(快递|外卖|件)/,
+      /(取件码|几号柜|哪个柜)/,
+      /规划.*(路线|取件|拿)/,
+      /(怎么|路线|先去).*(取|拿)/,
+      /(外卖|快递)(送|到|状态)/,
+    ],
+    entities: [],
+  },
 ];
 
 /**
@@ -131,5 +145,5 @@ export function recognizeIntent(text: string): IntentResult {
  * 获取所有支持的意图类别
  */
 export function getSupportedIntents(): IntentCategory[] {
-  return ['shower', 'schedule', 'card', 'weather', 'water'];
+  return ['shower', 'schedule', 'card', 'weather', 'water', 'delivery'];
 }

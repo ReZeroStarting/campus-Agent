@@ -3,7 +3,7 @@
 // ============================================================
 
 // ---- 用户表述 → 意图分类映射 ----
-export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'unknown';
+export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'unknown';
 
 export interface IntentResult {
   category: IntentCategory;
@@ -145,4 +145,58 @@ export interface TriggerContext {
   showerState: ShowerState;
   habits: UserHabits;
   weather?: WeatherInfo;
+}
+
+// ---- 快递包裹 ----
+export interface Package {
+  trackingId: string;
+  carrier: string;              // 中通、顺丰、圆通...
+  status: '运输中' | '已到站' | '已取件';
+  description?: string;
+  arrivedAt?: string;           // 到站时间 ISO
+  pickupCode?: string;          // 取件码
+  pickupPoint: string;          // 取件点名称
+  estimatedArrival?: string;    // 预计到达 ISO
+}
+
+// ---- 外卖订单 ----
+export interface DeliveryOrder {
+  orderId: string;
+  platform: string;             // 美团、饿了么
+  restaurant: string;
+  status: '已下单' | '商家备餐' | '配送中' | '已送达' | '已取餐';
+  estimatedDelivery: string;    // 预计送达 ISO
+  actualDelivery?: string;
+  pickupPoint: string;          // 取餐点
+  riderName?: string;
+  riderPhone?: string;
+}
+
+// ---- 取件点 ----
+export interface PickupPoint {
+  id: string;
+  name: string;
+  type: '快递' | '外卖' | '综合';
+  location: string;             // 位置描述
+  openTime: string;             // "08:00"
+  closeTime: string;            // "20:00"
+  commuteFrom: Record<string, number>; // 从各位置走过去多少分钟
+}
+
+// ---- 路线规划 ----
+export interface RouteStep {
+  step: number;
+  from: string;
+  to: string;
+  purpose: string;
+  walkMinutes: number;
+  action?: string;              // 取件、取餐、吃饭...
+}
+
+export interface RoutePlan {
+  totalMinutes: number;
+  startTime: string;
+  endTime: string;
+  steps: RouteStep[];
+  tips: string[];
 }
