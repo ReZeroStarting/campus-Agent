@@ -1,0 +1,73 @@
+{
+  "cardId": "ExamCountdownCard",
+  "version": "1.0",
+  "size": "2×2",
+  "template": {
+    "root": {
+      "type": "Column",
+      "padding": 12,
+      "children": [
+        {
+          "type": "Text",
+          "text": "📝 考试倒计时",
+          "fontSize": 14,
+          "fontWeight": "bold"
+        },
+        { "type": "Divider", "margin": "4 0" },
+        {
+          "type": "List",
+          "divider": false,
+          "itemTemplate": {
+            "type": "Row",
+            "alignItems": "center",
+            "padding": "2 0",
+            "children": [
+              {
+                "type": "Text",
+                "text": "$item.urgency",
+                "fontSize": 13,
+                "width": 50
+              },
+              {
+                "type": "Text",
+                "text": "$item.label",
+                "fontSize": 12,
+                "flex": 1
+              }
+            ]
+          },
+          "dataSource": "$exams",
+          "maxItems": 4
+        },
+        {
+          "type": "showIf",
+          "condition": "$exams.length == 0",
+          "children": [
+            { "type": "Text", "text": "🎉 考试周结束啦！", "fontSize": 12, "textAlign": "center", "margin": "8 0" }
+          ]
+        },
+        {
+          "type": "Text",
+          "text": "$summary",
+          "fontSize": 10,
+          "fontColor": "#999",
+          "margin": "2 0"
+        }
+      ]
+    }
+  },
+  "dataMapping": {
+    "exams": "exams[]",
+    "exams[].urgency": "urgencyEmoji",
+    "exams[].label": "label",
+    "summary": "summary"
+  },
+  "sampleData": {
+    "exams": [
+      { "urgencyEmoji": "🔴 2天", "label": "概率论 @教一301" },
+      { "urgencyEmoji": "🟡 5天", "label": "高等数学 @教一101" },
+      { "urgencyEmoji": "🟢 9天", "label": "数据结构 @教三401" }
+    ],
+    "summary": "📊 本周 3 场，加油复习！"
+  }
+}

@@ -8,6 +8,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { processMessage, registerBuiltinTriggers, runScheduledCheck } from '../agent.js';
 import { parseICS, parseExcel, setImportedSchedule, clearImportedSchedule, getImportedSchedule } from '../services/scheduleImport.js';
 import { fetchAllCourses } from '../services/scheduleData.js';
+import { getMorningBriefCard, getScheduleCard, getExamCard, getBalanceCard, getPackageCard } from '../services/cardData.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3456;
 
@@ -176,6 +177,26 @@ const server = createServer(async (req, res) => {
         },
       });
       return;
+    }
+
+    // ---- 服务卡片数据 ----
+    if (req.method === 'GET') {
+      const cardMap: Record<string, () => Record<string, unknown>> = {
+        'morning-brief': getMorningBriefCard,
+        'schedule': getScheduleCard,
+        'exam': getExamCard,
+        'balance': getBalanceCard,
+        'packages': getPackageCard,
+      };
+      const match = url.pathname.match(/^\/api\/card\/(.+)$/);
+      if (match && cardMap[match[1]]) {
+        sendJSON(res, cardMap[match[1]]());
+        return;
+      }
+      if (url.pathname === '/api/cards') {
+        sendJSON(res, Object.keys(cardMap));
+        return;
+      }
     }
 
     // 404

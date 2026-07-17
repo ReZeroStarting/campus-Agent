@@ -1,0 +1,92 @@
+{
+  "app": {
+    "bundleName": "com.campusbuddy.agent",
+    "versionCode": 1,
+    "versionName": "1.0.0"
+  },
+  "widgets": [
+    {
+      "name": "MorningBriefCard",
+      "displayName": "智能早报",
+      "description": "天气+课表+考试+快递一站式卡片",
+      "type": "form",
+      "minApiVersion": 12,
+      "dimensions": ["2×2"],
+      "updateInterval": 1800,
+      "updateEnabled": true,
+      "scheduledUpdateEnabled": true,
+      "dataSource": "/api/card/morning-brief",
+      "clickAction": {
+        "type": "router",
+        "uri": "pages/Index",
+        "params": { "scene": "morning_brief" }
+      }
+    },
+    {
+      "name": "ScheduleCard",
+      "displayName": "今日课表",
+      "description": "今日课程一览",
+      "type": "form",
+      "minApiVersion": 12,
+      "dimensions": ["2×2", "4×2"],
+      "updateInterval": 3600,
+      "updateEnabled": true,
+      "dataSource": "/api/card/schedule",
+      "clickAction": {
+        "type": "router",
+        "uri": "pages/Index",
+        "params": { "scene": "schedule" }
+      }
+    },
+    {
+      "name": "ExamCountdownCard",
+      "displayName": "考试倒计时",
+      "description": "最近考试安排与倒计时",
+      "type": "form",
+      "minApiVersion": 12,
+      "dimensions": ["1×2", "2×2"],
+      "updateInterval": 3600,
+      "updateEnabled": true,
+      "dataSource": "/api/card/exam",
+      "visibility": "exam_season",
+      "clickAction": {
+        "type": "router",
+        "uri": "pages/Index",
+        "params": { "scene": "exam" }
+      }
+    },
+    {
+      "name": "BalanceCard",
+      "displayName": "一卡通余额",
+      "description": "余额实时监控与提醒",
+      "type": "form",
+      "minApiVersion": 12,
+      "dimensions": ["1×2"],
+      "updateInterval": 1800,
+      "updateEnabled": true,
+      "dataSource": "/api/card/balance",
+      "visibility": "low_balance",
+      "clickAction": {
+        "type": "router",
+        "uri": "pages/Index",
+        "params": { "scene": "card" }
+      }
+    },
+    {
+      "name": "PackageCard",
+      "displayName": "快递提醒",
+      "description": "快递到站取件提醒",
+      "type": "notification",
+      "updateEnabled": false,
+      "triggerMode": "event",
+      "dataSource": "/api/card/packages",
+      "clickAction": {
+        "type": "router",
+        "uri": "pages/Index",
+        "params": { "scene": "delivery" }
+      }
+    }
+  ],
+  "apiBase": "https://api.campusbuddy.example.com",
+  "authHeader": "Authorization"
+}

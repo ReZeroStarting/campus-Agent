@@ -1,0 +1,24 @@
+{
+  "cardId": "PackageCard",
+  "version": "1.0",
+  "type": "notification",
+  "template": {
+    "notification": {
+      "title": "📦 快递到站提醒",
+      "text": "$summary",
+      "smallIcon": "$media:ic_package",
+      "autoCancel": true,
+      "want": {
+        "bundleName": "com.campusbuddy.agent",
+        "abilityName": "MainAbility",
+        "parameters": { "scene": "delivery" }
+      }
+    }
+  },
+  "dataMapping": {
+    "summary": "summary"
+  },
+  "sampleData": {
+    "summary": "圆通-《深入理解计算机系统》已到站\n取件码：1-4-3088 · 菜鸟驿站"
+  }
+}

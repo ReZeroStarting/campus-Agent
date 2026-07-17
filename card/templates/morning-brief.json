@@ -1,0 +1,89 @@
+{
+  "cardId": "MorningBriefCard",
+  "version": "1.0",
+  "size": "2×2",
+  "template": {
+    "root": {
+      "type": "Column",
+      "padding": 12,
+      "children": [
+        {
+          "type": "Row",
+          "alignItems": "center",
+          "children": [
+            { "type": "Text", "text": "$greeting", "fontSize": 14, "fontWeight": "bold", "flex": 1 },
+            { "type": "Text", "text": "$date", "fontSize": 11, "fontColor": "#999" }
+          ]
+        },
+        { "type": "Divider", "margin": "4 0" },
+        {
+          "type": "Row",
+          "alignItems": "center",
+          "margin": "2 0",
+          "children": [
+            { "type": "Text", "text": "$weather.icon", "fontSize": 14 },
+            { "type": "Text", "text": "$weather.text", "fontSize": 12, "margin": "0 4" },
+            { "type": "Text", "text": "$weather.tips", "fontSize": 11, "fontColor": "#FF6B35" }
+          ]
+        },
+        { "type": "showIf", "condition": "$hasCourse", "children": [
+          { "type": "Row", "children": [
+            { "type": "Text", "text": "📚", "fontSize": 13 },
+            { "type": "Text", "text": "$courseSummary", "fontSize": 12, "maxLines": 1 }
+          ]}
+        ]},
+        { "type": "showIf", "condition": "$hasPackage", "children": [
+          { "type": "Row", "children": [
+            { "type": "Text", "text": "📦", "fontSize": 13 },
+            { "type": "Text", "text": "$packageSummary", "fontSize": 12, "maxLines": 1 }
+          ]}
+        ]},
+        { "type": "showIf", "condition": "$hasEvent", "children": [
+          { "type": "Row", "children": [
+            { "type": "Text", "text": "🎪", "fontSize": 13 },
+            { "type": "Text", "text": "$eventSummary", "fontSize": 12, "maxLines": 1 }
+          ]}
+        ]},
+        { "type": "showIf", "condition": "$balanceLow", "children": [
+          { "type": "Row", "children": [
+            { "type": "Text", "text": "💳", "fontSize": 13 },
+            { "type": "Text", "text": "$balanceAlert", "fontSize": 12, "fontColor": "#FF4444" }
+          ]}
+        ]},
+        { "type": "Text", "text": "$dailyTip", "fontSize": 11, "fontColor": "#999", "margin": "2 0", "fontStyle": "italic" }
+      ]
+    }
+  },
+  "dataMapping": {
+    "greeting": "greeting",
+    "date": "date",
+    "weather.icon": "weatherEmoji",
+    "weather.text": "weatherText",
+    "weather.tips": "weatherTips",
+    "hasCourse": "hasCourse",
+    "courseSummary": "courseSummary",
+    "hasPackage": "hasPackage",
+    "packageSummary": "packageSummary",
+    "hasEvent": "hasEvent",
+    "eventSummary": "eventSummary",
+    "balanceLow": "balanceLow",
+    "balanceAlert": "balanceAlert",
+    "dailyTip": "dailyTip"
+  },
+  "sampleData": {
+    "greeting": "☀️ 早上好！",
+    "date": "7月17日 周五",
+    "weatherEmoji": "🌧️",
+    "weatherText": "小雨 26°C~33°C",
+    "weatherTips": "记得带伞",
+    "hasCourse": true,
+    "courseSummary": "10:00 数据结构 @教三401",
+    "hasPackage": true,
+    "packageSummary": "圆通-《CSAPP》已到站",
+    "hasEvent": true,
+    "eventSummary": "今晚19:30 露天电影",
+    "balanceLow": true,
+    "balanceAlert": "余额12元 建议充值",
+    "dailyTip": "✨ 今天也要加油呀"
+  }
+}

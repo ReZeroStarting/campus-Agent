@@ -1,0 +1,85 @@
+{
+  "cardId": "ScheduleCard",
+  "version": "1.0",
+  "size": "4×2",
+  "template": {
+    "root": {
+      "type": "Column",
+      "padding": 12,
+      "children": [
+        {
+          "type": "Row",
+          "alignItems": "center",
+          "children": [
+            { "type": "Text", "text": "📚 今日课表", "fontSize": 15, "fontWeight": "bold", "flex": 1 },
+            { "type": "Text", "text": "$dateLabel", "fontSize": 11, "fontColor": "#999" }
+          ]
+        },
+        { "type": "Divider", "margin": "4 0" },
+        {
+          "type": "List",
+          "divider": true,
+          "itemTemplate": {
+            "type": "Row",
+            "padding": "4 0",
+            "children": [
+              {
+                "type": "Column",
+                "width": 60,
+                "children": [
+                  { "type": "Text", "text": "$item.start", "fontSize": 13, "fontWeight": "medium" },
+                  { "type": "Text", "text": "$item.end", "fontSize": 10, "fontColor": "#999" }
+                ]
+              },
+              { "type": "Divider", "vertical": true, "margin": "0 6" },
+              {
+                "type": "Column",
+                "flex": 1,
+                "children": [
+                  { "type": "Text", "text": "$item.name", "fontSize": 13 },
+                  { "type": "Text", "text": "$item.teacher", "fontSize": 10, "fontColor": "#666" },
+                  { "type": "Text", "text": "@$item.location", "fontSize": 10, "fontColor": "#999" }
+                ]
+              }
+            ]
+          },
+          "dataSource": "$courses",
+          "maxItems": 4
+        },
+        {
+          "type": "showIf",
+          "condition": "$courses.length == 0",
+          "children": [
+            { "type": "Text", "text": "$noCourseMessage", "fontSize": 12, "fontColor": "#999", "textAlign": "center", "margin": "12 0" }
+          ]
+        },
+        {
+          "type": "Text",
+          "text": "$summary",
+          "fontSize": 11,
+          "fontColor": "#999",
+          "margin": "4 0"
+        }
+      ]
+    }
+  },
+  "dataMapping": {
+    "dateLabel": "dateLabel",
+    "courses": "courses[]",
+    "courses[].start": "startTime",
+    "courses[].end": "endTime",
+    "courses[].name": "name",
+    "courses[].teacher": "teacher",
+    "courses[].location": "location",
+    "noCourseMessage": "noCourseMessage",
+    "summary": "summary"
+  },
+  "sampleData": {
+    "dateLabel": "7月17日 周五",
+    "courses": [
+      { "startTime": "10:00", "endTime": "11:40", "name": "数据结构", "teacher": "张明远", "location": "教三401" },
+      { "startTime": "14:00", "endTime": "15:40", "name": "概率论", "teacher": "李教授", "location": "教一301" }
+    ],
+    "summary": "🟢 今日 2 节课"
+  }
+}

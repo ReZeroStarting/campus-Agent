@@ -1,0 +1,84 @@
+{
+  "cardId": "BalanceCard",
+  "version": "1.0",
+  "size": "1×2",
+  "template": {
+    "root": {
+      "type": "Column",
+      "padding": 10,
+      "justifyContent": "center",
+      "children": [
+        {
+          "type": "Row",
+          "alignItems": "center",
+          "margin": "0 0 4 0",
+          "children": [
+            { "type": "Text", "text": "💳", "fontSize": 16 },
+            { "type": "Text", "text": "一卡通", "fontSize": 13, "margin": "0 4", "fontColor": "#666" }
+          ]
+        },
+        {
+          "type": "Text",
+          "text": "$balance",
+          "fontSize": 22,
+          "fontWeight": "bold",
+          "fontColor": "$balanceColor"
+        },
+        {
+          "type": "Text",
+          "text": "$statusText",
+          "fontSize": 11,
+          "fontColor": "$statusColor"
+        },
+        { "type": "Divider", "margin": "6 0" },
+        {
+          "type": "Row",
+          "justifyContent": "space-between",
+          "children": [
+            {
+              "type": "Column",
+              "alignItems": "center",
+              "children": [
+                { "type": "Text", "text": "今日", "fontSize": 10, "fontColor": "#999" },
+                { "type": "Text", "text": "$todaySpent", "fontSize": 12, "fontWeight": "medium" }
+              ]
+            },
+            { "type": "Divider", "vertical": true },
+            {
+              "type": "Column",
+              "alignItems": "center",
+              "children": [
+                { "type": "Text", "text": "本周", "fontSize": 10, "fontColor": "#999" },
+                { "type": "Text", "text": "$weekSpent", "fontSize": 12, "fontWeight": "medium" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "dataMapping": {
+    "balance": "balanceText",
+    "balanceColor": "balanceColor",
+    "statusText": "statusText",
+    "statusColor": "statusColor",
+    "todaySpent": "todaySpent",
+    "weekSpent": "weekSpent"
+  },
+  "dataLogic": {
+    "balanceColor": {
+      "rule": "if(balance >= 50) '#2ecc71'; else if(balance >= 20) '#f39c12'; else '#e74c3c'"
+    },
+    "statusColor": {
+      "rule": "if(balance >= 50) '#2ecc71'; else if(balance >= 20) '#f39c12'; else '#e74c3c'"
+    }
+  },
+  "sampleData": {
+    "balanceText": "12.0 元",
+    "balanceColor": "#e74c3c",
+    "statusText": "余额偏低，建议充值",
+    "statusColor": "#e74c3c",
+    "todaySpent": "15.5",
+    "weekSpent": "63.5"
+  }
+}
