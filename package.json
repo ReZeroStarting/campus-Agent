@@ -1,0 +1,31 @@
+{
+  "name": "campus-buddy",
+  "version": "0.1.0",
+  "description": "校园搭子 - 鸿蒙高校创新赛 Agent 赛道项目",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "api": "tsx src/api/server.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "tsx src/test-run.ts",
+    "demo": "tsx src/demo.ts",
+    "test:unit": "vitest"
+  },
+  "keywords": [
+    "agent",
+    "harmonyos",
+    "campus",
+    "ai"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
