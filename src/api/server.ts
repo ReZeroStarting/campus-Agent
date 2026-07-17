@@ -149,9 +149,39 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    // ---- 小艺 Deeper Intent 对接 ----
+    if (url.pathname === '/api/xiaoyi' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const query = (body.query || body.text || body.message) as string || '';
+      const intent = (body.intent || '') as string;
+
+      if (!query.trim()) {
+        sendJSON(res, {
+          fulfillmentText: '请问有什么可以帮你的？',
+          suggestions: ['早安', '查课表', '找空教室'],
+        });
+        return;
+      }
+
+      const response = await processMessage(query.trim());
+
+      // 转换为小艺协议格式
+      sendJSON(res, {
+        fulfillmentText: response.text,
+        suggestions: response.suggestions || [],
+        card: {
+          type: 'info',
+          title: intent ? `校园搭子 · ${intent}` : '校园搭子',
+          content: response.text.substring(0, 100),
+        },
+      });
+      return;
+    }
+
     // 404
     sendJSON(res, { error: 'Not found', endpoints: [
       'POST /api/chat',
+      'POST /api/xiaoyi',
       'GET  /api/health',
       'GET  /api/schedule',
       'POST /api/schedule/import/ics',
@@ -168,6 +198,7 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`\n  🎒 校园搭子 API 已启动 → http://localhost:${PORT}`);
   console.log(`  POST /api/chat            → 对话`);
+  console.log(`  POST /api/xiaoyi          → 小艺 Deeper Intent`);
   console.log(`  POST /api/schedule/import/ics   → 导入 ICS 课表`);
   console.log(`  POST /api/schedule/import/excel → 导入 Excel 课表`);
   console.log(`  GET  /api/schedule        → 查看课表`);

@@ -109,6 +109,19 @@ docker compose up -d        # 一键启动 HTTP API
 docker compose down         # 停止
 ```
 
+### 小艺对接
+
+```bash
+# 1. 部署 API 服务（同上）
+# 2. 上传 xiaoyi/skill.json 到鸿蒙开发者平台
+# 3. 测试小艺调用
+curl -X POST http://localhost:3456/api/xiaoyi \
+  -H "Content-Type: application/json" \
+  -d '{"intent":"query_exam","query":"考试倒计时"}'
+```
+
+详见 [`xiaoyi/INTEGRATION.md`](xiaoyi/INTEGRATION.md)
+
 ## 📁 项目结构
 
 ```
@@ -148,6 +161,6 @@ src/
 ## 🔮 后续规划
 
 - [x] Phase 2：接入和风天气 API（已完成）
-- [ ] Phase 3：鸿蒙小艺 Skill 集成（意图共享 + 服务卡片）
-- [ ] Phase 4：鸿蒙原子化服务卡片（课表/考试/余额 Widget）
+- [x] Phase 3：小艺 Deeper Intent 对接（已完成）
+- [ ] Phase 4：鸿蒙服务卡片 + 原子化服务
 - [ ] Phase 5：接入学校教务系统（课表/成绩/一卡通真实数据）

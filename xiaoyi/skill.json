@@ -1,0 +1,158 @@
+{
+  "skill": {
+    "name": "校园搭子",
+    "packageName": "com.campusbuddy.agent",
+    "version": "1.0.0",
+    "description": "大学生的校园生活 Agent — 一句话，校园琐事全安排好",
+    "minApiVersion": 12,
+    "permissions": ["INTERNET"]
+  },
+
+  "intents": [
+    {
+      "name": "query_building",
+      "category": "NAVIGATION",
+      "description": "查校园建筑位置、去哪办理事务",
+      "utterances": ["教三在哪", "去哪打印", "图书馆怎么走", "行政楼几楼办一卡通"],
+      "parameters": [
+        { "name": "buildingName", "type": "string", "required": true },
+        { "name": "serviceQuery", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "query_exam",
+      "category": "EDUCATION",
+      "description": "考试倒计时、考试安排查询",
+      "utterances": ["考试倒计时", "高数什么时候考", "还有几天考试", "期末考试安排"],
+      "parameters": [
+        { "name": "courseName", "type": "string", "required": false },
+        { "name": "timeline", "type": "string", "enum": ["today", "tomorrow", "week", "all"] }
+      ]
+    },
+    {
+      "name": "query_classroom",
+      "category": "EDUCATION",
+      "description": "空闲教室查询",
+      "utterances": ["找空教室", "教三有空教室吗", "找个有插座的自习室"],
+      "parameters": [
+        { "name": "building", "type": "string", "required": false },
+        { "name": "features", "type": "string[]", "required": false, "enum": ["插座", "空调", "大屏", "小教室"] }
+      ]
+    },
+    {
+      "name": "query_gpa",
+      "category": "EDUCATION",
+      "description": "绩点查询、达标计算、挂科检查",
+      "utterances": ["绩点多少", "够不够3.5", "有没有挂科", "绩点趋势"],
+      "parameters": [
+        { "name": "targetGpa", "type": "number", "required": false },
+        { "name": "checkFailing", "type": "boolean", "required": false }
+      ]
+    },
+    {
+      "name": "query_shower",
+      "category": "LIFE_SERVICE",
+      "description": "洗澡余额查询、澡堂拥挤度",
+      "utterances": ["我要洗澡", "洗澡还有多少钱", "澡堂人多吗"],
+      "parameters": []
+    },
+    {
+      "name": "query_schedule",
+      "category": "SCHEDULE",
+      "description": "课表查询",
+      "utterances": ["明天什么课", "今天课表", "周一有什么课"],
+      "parameters": [
+        { "name": "date", "type": "string", "required": false },
+        { "name": "relativeDate", "type": "string", "enum": ["today", "tomorrow"] }
+      ]
+    },
+    {
+      "name": "query_card",
+      "category": "FINANCE",
+      "description": "一卡通余额、消费明细",
+      "utterances": ["卡里还有多少钱", "这周花了多少", "查消费明细"],
+      "parameters": [
+        { "name": "timeRange", "type": "string", "enum": ["today", "week", "month"] }
+      ]
+    },
+    {
+      "name": "query_delivery",
+      "category": "LOGISTICS",
+      "description": "快递追踪、外卖状态、取件路线",
+      "utterances": ["查快递", "外卖到了吗", "取件码是多少", "帮我规划路线"],
+      "parameters": [
+        { "name": "action", "type": "string", "enum": ["package", "takeout", "route", "pickup_code"] }
+      ]
+    },
+    {
+      "name": "query_forum",
+      "category": "INFORMATION",
+      "description": "校园论坛浏览、活动查询、失物招领、课程评价",
+      "utterances": ["论坛首页", "有什么讲座", "最近有人捡到东西吗", "机器学习课怎么样"],
+      "parameters": [
+        { "name": "section", "type": "string", "enum": ["events", "lostfound", "secondhand", "coursereview", "hot"] }
+      ]
+    },
+    {
+      "name": "query_weather",
+      "category": "WEATHER",
+      "description": "天气查询、穿衣建议",
+      "utterances": ["今天天气", "明天冷不冷", "穿什么"],
+      "parameters": [
+        { "name": "date", "type": "string", "enum": ["today", "tomorrow"] },
+        { "name": "suggestion", "type": "string", "enum": ["dress", "umbrella"] }
+      ]
+    },
+    {
+      "name": "morning_brief",
+      "category": "INFORMATION",
+      "description": "智能早报 — 天气+课表+考试+快递+活动一站式推送",
+      "utterances": ["早安", "早上好", "今日简报"],
+      "parameters": []
+    },
+    {
+      "name": "track_water",
+      "category": "HEALTH",
+      "description": "饮水记录与进度追踪",
+      "utterances": ["今天喝了多少水", "记录喝水200ml"],
+      "parameters": [
+        { "name": "amount", "type": "number", "required": false }
+      ]
+    }
+  ],
+
+  "fulfillment": {
+    "baseUrl": "https://api.campusbuddy.example.com",
+    "endpoint": "/api/xiaoyi",
+    "authType": "api_key",
+    "authHeader": "X-API-Key",
+    "timeout": 3000
+  },
+
+  "shortcuts": [
+    {
+      "name": "早安",
+      "intent": "morning_brief",
+      "icon": "$media:ic_morning",
+      "description": "一句话了解今天"
+    },
+    {
+      "name": "考试",
+      "intent": "query_exam",
+      "icon": "$media:ic_exam",
+      "description": "考试倒计时"
+    },
+    {
+      "name": "教室",
+      "intent": "query_classroom",
+      "icon": "$media:ic_classroom",
+      "description": "找空教室"
+    },
+    {
+      "name": "绩点",
+      "intent": "query_gpa",
+      "icon": "$media:ic_gpa",
+      "description": "查绩点"
+    }
+  ]
+}
