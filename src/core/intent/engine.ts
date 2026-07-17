@@ -96,6 +96,28 @@ const rules: IntentRule[] = [
     entities: [],
   },
   {
+    category: 'exam',
+    keywords: ['考试', '期末', '期中', '补考', '高数', '线代', '机器学习', '操作系统', '倒计时', '几号考', '什么考', '还有几天'],
+    patterns: [
+      /(考试|期末|期中|补考)/,
+      /(还有|还剩).*(天|考试)/,
+      /(几号|什么时候).*考/,
+      /(倒计时|考试安排|期末周)/,
+    ],
+    entities: [],
+  },
+  {
+    category: 'classroom',
+    keywords: ['教室', '自习室', '空教室', '自习', '找个位置', '充电', '插座', '教一', '教二', '教三', '找个', '自习'],
+    patterns: [
+      /(空教室|自习室|空闲教室)/,
+      /(找个|有没有|哪有).*(教室|自习|位置)/,
+      /(教[一二三四五六]).*(空|自习|个|有)/,
+      /(能充电|有插座|多媒体).*(教室)/,
+    ],
+    entities: [],
+  },
+  {
     category: 'map',
     keywords: ['教学楼', '实验楼', '图书馆', '食堂', '宿舍', '行政楼', '校医院', '体育馆', '操场', '打印', '在哪', '怎么走', '去哪', '哪栋', '哪个楼', '补办', '一卡通', '成绩单', '教一', '教二', '教三', '教四', '教五', '教六', '地图', '校园'],
     patterns: [
@@ -104,6 +126,17 @@ const rules: IntentRule[] = [
       /(去哪|哪里|什么地方).*(打印|补办|办|充|取|交)/,
       /(补办|办理).*(一卡通|学生证|成绩单)/,
       /(地图|校园地图)/,
+    ],
+    entities: [],
+  },
+  {
+    category: 'grade',
+    keywords: ['绩点', 'GPA', '成绩', '均分', '加权', '够不够', '挂科', '学分'],
+    patterns: [
+      /(绩点|GPA|成绩|均分)/,
+      /(够不够|能不能|能.*上|能.*到).*(绩点|GPA|3\.\d|4\.\d)/,
+      /(加权|平均).*(分|绩)/,
+      /(挂科|挂了|能过)/,
     ],
     entities: [],
   },
@@ -174,5 +207,5 @@ export function recognizeIntent(text: string): IntentResult {
  * 获取所有支持的意图类别
  */
 export function getSupportedIntents(): IntentCategory[] {
-  return ['shower', 'schedule', 'card', 'weather', 'water', 'delivery', 'forum', 'map'];
+  return ['shower', 'schedule', 'card', 'weather', 'water', 'delivery', 'forum', 'map', 'exam', 'classroom', 'grade'];
 }

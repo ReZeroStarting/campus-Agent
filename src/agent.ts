@@ -18,6 +18,10 @@ import {
 } from './scenes/delivery.js';
 import { handleForumQuery } from './scenes/forum.js';
 import { handleMapQuery, setCurrentLocation, handleBuildingQuery } from './scenes/map.js';
+import { handleMorningBrief } from './scenes/morning-brief.js';
+import { handleExamQuery } from './scenes/exam.js';
+import { handleClassroomQuery } from './scenes/classroom.js';
+import { handleGradeQuery } from './scenes/grade.js';
 import { getCardState, getShowerState, getWaterIntake, addWater, getActivePackages, getPickupPoints, findBuilding } from './data/mock.js';
 import { getUserHabits, getLongTermKnowledge } from './core/memory/engine.js';
 import { fetchWeather } from './services/weather.js';
@@ -138,6 +142,11 @@ export async function processMessage(text: string): Promise<AgentResponse> {
     }
   }
 
+  // 「早安」/「早上好」/「日报」→ 智能早报
+  if (trimmed.includes('早安') || trimmed.includes('早上好') || trimmed.includes('日报') || trimmed.includes('今天有什么') || trimmed.includes('今日简报')) {
+    return handleMorningBrief();
+  }
+
   // ---- 意图识别 ----
 
   const intent = recognizeIntent(text);
@@ -218,6 +227,21 @@ export async function processMessage(text: string): Promise<AgentResponse> {
 
     case 'map': {
       response = handleMapQuery(text);
+      break;
+    }
+
+    case 'exam': {
+      response = handleExamQuery(text);
+      break;
+    }
+
+    case 'classroom': {
+      response = handleClassroomQuery(text);
+      break;
+    }
+
+    case 'grade': {
+      response = handleGradeQuery(text);
       break;
     }
 
@@ -335,7 +359,7 @@ function getFallbackResponse(text: string): string {
   if (text.includes('晚安')) {
     return handleSleepQuery().text;
   }
-  return '抱歉，我还不太理解。\n\n我能帮你：\n• 地图："教三在哪" "去哪打印" "到图书馆怎么走"\n• 快递："查快递" "取件码是多少"\n• 外卖："外卖到了吗"\n• 取件："帮我规划路线" "取完了"\n• 论坛："论坛首页" "有什么活动" "课程评价"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"\n• 吃饭："中午吃什么"\n• 喝水："喝了200ml"\n• 睡眠："几点睡"';
+  return '抱歉，我还不太理解。\n\n我能帮你：\n• 早报："早安" — 天气+课表+考试+快递一站式推送\n• 考试："考试倒计时" "还有几天考高数"\n• 教室："找空教室" "教三有插座的自习室"\n• 绩点："绩点多少" "够不够3.5"\n• 地图："教三在哪" "去哪打印"\n• 快递："查快递" "取件码"\n• 论坛："论坛首页" "有什么活动"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"';
 }
 
 // ---- 主动触发（由定时任务调用） ----

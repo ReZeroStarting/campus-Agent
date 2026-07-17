@@ -3,7 +3,7 @@
 // ============================================================
 
 // ---- 用户表述 → 意图分类映射 ----
-export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'forum' | 'map' | 'unknown';
+export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'forum' | 'map' | 'exam' | 'classroom' | 'grade' | 'unknown';
 
 export interface IntentResult {
   category: IntentCategory;
@@ -296,4 +296,58 @@ export interface MapQueryResult {
   buildings: CampusBuilding[];
   answer: string;
   suggestions: string[];
+}
+
+// ============================================================
+// 考试倒计时
+// ============================================================
+
+export interface Exam {
+  id: string;
+  courseName: string;
+  date: string;          // ISO
+  time: string;          // "14:00-16:00"
+  location: string;
+  type: 'final' | 'midterm' | 'makeup' | 'quiz';
+  credits: number;
+  notes?: string;
+}
+
+// ============================================================
+// 绩点计算器
+// ============================================================
+
+export interface CourseGrade {
+  courseName: string;
+  credits: number;
+  score: number;          // 0-100
+  semester: string;       // "2025-2026-2"
+  category: '必修' | '选修' | '限选';
+}
+
+export interface GpaResult {
+  gpa: number;            // 4.0 制
+  weightedAvg: number;    // 加权平均分
+  totalCredits: number;
+  passedCredits: number;
+  grades: CourseGrade[];
+  trend: { semester: string; gpa: number }[];
+}
+
+// ============================================================
+// 空闲教室
+// ============================================================
+
+export interface Classroom {
+  id: string;
+  name: string;
+  building: string;       // 所属建筑
+  floor: number;
+  capacity: number;
+  features: string[];     // 空调/插座/多媒体
+}
+
+export interface ClassroomSlot {
+  room: Classroom;
+  freeSlots: { start: string; end: string }[];  // 空闲时段
 }

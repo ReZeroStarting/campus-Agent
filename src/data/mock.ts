@@ -3,7 +3,7 @@
 // 初赛阶段使用模拟数据跑通全流程，复赛再接入真实 API
 // ============================================================
 
-import type { Course, CardState, ShowerState, WeatherInfo, ForumPost, ExtractedInfo, ForumSection, CampusBuilding } from '../models/index.js';
+import type { Course, CardState, ShowerState, WeatherInfo, ForumPost, ExtractedInfo, ForumSection, CampusBuilding, Exam, CourseGrade, Classroom } from '../models/index.js';
 
 // ---- 课表模拟 ----
 
@@ -194,6 +194,10 @@ export function getMockWeather(date: Date): WeatherInfo {
     windLevel: 1 + (seed % 3),
     tips: tipsMap[condition] || '注意天气变化',
   };
+}
+
+export function getWeatherToday(): WeatherInfo {
+  return getMockWeather(new Date());
 }
 
 // ---- 饮水模拟 ----
@@ -1045,4 +1049,169 @@ export function findBuildingsByService(service: string): CampusBuilding[] {
   return campusBuildings.filter(b =>
     b.services.some(s => terms.some(t => s.includes(t)))
   );
+}
+
+// ============================================================
+// 考试 & 成绩 & 教室模拟数据
+// ============================================================
+
+function dayOffset(d: number): string {
+  const dt = new Date();
+  dt.setDate(dt.getDate() + d);
+  return dt.toISOString().split('T')[0];
+}
+
+// ── 考试安排 ──
+const exams: Exam[] = [
+  { id: 'ex_001', courseName: '高等数学（下）', date: dayOffset(5), time: '08:30-10:30', location: '教一 101', type: 'final', credits: 5, notes: '闭卷，带计算器' },
+  { id: 'ex_002', courseName: '线性代数', date: dayOffset(7), time: '14:00-16:00', location: '教一 201', type: 'final', credits: 3 },
+  { id: 'ex_003', courseName: '数据结构', date: dayOffset(9), time: '08:30-10:30', location: '教三 401', type: 'final', credits: 4, notes: '开卷，可带教材' },
+  { id: 'ex_004', courseName: '操作系统', date: dayOffset(12), time: '14:00-16:00', location: '教三 402', type: 'final', credits: 4, notes: '闭卷' },
+  { id: 'ex_005', courseName: '大学英语（四）', date: dayOffset(14), time: '08:30-10:30', location: '教二 301', type: 'final', credits: 2, notes: '含听力，带耳机' },
+  { id: 'ex_006', courseName: '概率论', date: dayOffset(2), time: '09:00-11:00', location: '教一 301', type: 'quiz', credits: 3, notes: '随堂测验，占平时成绩30%' },
+];
+
+// ── 成绩 ──
+const courseGrades: CourseGrade[] = [
+  { courseName: '高等数学（上）', credits: 5, score: 82, semester: '2025-2026-1', category: '必修' },
+  { courseName: '线性代数', credits: 3, score: 88, semester: '2025-2026-1', category: '必修' },
+  { courseName: '大学物理（上）', credits: 4, score: 75, semester: '2025-2026-1', category: '必修' },
+  { courseName: 'C 语言程序设计', credits: 3, score: 90, semester: '2025-2026-1', category: '必修' },
+  { courseName: '大学英语（三）', credits: 2, score: 85, semester: '2025-2026-1', category: '必修' },
+  { courseName: '体育（三）', credits: 1, score: 92, semester: '2025-2026-1', category: '必修' },
+  { courseName: 'Python 数据分析', credits: 2, score: 94, semester: '2025-2026-1', category: '选修' },
+  { courseName: '数据结构', credits: 4, score: 78, semester: '2025-2026-2', category: '必修' },
+  { courseName: '计算机组成原理', credits: 4, score: 72, semester: '2025-2026-2', category: '必修' },
+  { courseName: '概率论', credits: 3, score: 85, semester: '2025-2026-2', category: '必修' },
+  { courseName: '数据库原理', credits: 3, score: 80, semester: '2025-2026-2', category: '必修' },
+  { courseName: '汇编语言', credits: 2, score: 68, semester: '2025-2026-2', category: '限选' },
+];
+
+// ── 教室 ──
+const classrooms: Classroom[] = [
+  { id: 'cr_01', name: '教一 101', building: '教一', floor: 1, capacity: 200, features: ['多媒体', '空调', '大屏'] },
+  { id: 'cr_02', name: '教一 102', building: '教一', floor: 1, capacity: 120, features: ['多媒体', '空调'] },
+  { id: 'cr_03', name: '教一 201', building: '教一', floor: 2, capacity: 150, features: ['多媒体', '空调', '大屏'] },
+  { id: 'cr_04', name: '教一 301', building: '教一', floor: 3, capacity: 80, features: ['空调'] },
+  { id: 'cr_05', name: '教一 302', building: '教一', floor: 3, capacity: 60, features: ['空调', '插座'] },
+  { id: 'cr_06', name: '教一 401', building: '教一', floor: 4, capacity: 40, features: ['空调', '插座', '小教室'] },
+  { id: 'cr_07', name: '教三 101', building: '教三', floor: 1, capacity: 80, features: ['机房', '空调', '插座', '多媒体'] },
+  { id: 'cr_08', name: '教三 201', building: '教三', floor: 2, capacity: 80, features: ['机房', '空调', '插座', '多媒体'] },
+  { id: 'cr_09', name: '教三 401', building: '教三', floor: 4, capacity: 100, features: ['多媒体', '空调', '大屏'] },
+  { id: 'cr_10', name: '教三 402', building: '教三', floor: 4, capacity: 60, features: ['空调', '插座'] },
+  { id: 'cr_11', name: '教三 501', building: '教三', floor: 5, capacity: 40, features: ['空调', '插座', '小教室'] },
+  { id: 'cr_12', name: '教三 502', building: '教三', floor: 5, capacity: 30, features: ['空调', '插座', '小教室'] },
+  { id: 'cr_13', name: '教二 101', building: '教二', floor: 1, capacity: 100, features: ['多媒体', '空调'] },
+  { id: 'cr_14', name: '教二 201', building: '教二', floor: 2, capacity: 60, features: ['空调', '插座'] },
+  { id: 'cr_15', name: '教二 301', building: '教二', floor: 3, capacity: 80, features: ['多媒体', '空调', '大屏', '语音'] },
+];
+
+// 教室占用状态模拟
+function getOccupiedRoomsNow(): Set<string> {
+  const hour = new Date().getHours();
+  const occupiedByTime: Record<number, string[]> = {
+    8: ['教一 101', '教一 102', '教三 401'],
+    9: ['教一 101', '教一 102', '教三 401', '教二 101'],
+    10: ['教一 201', '教三 101', '教三 201', '教二 301'],
+    11: ['教一 201', '教三 101', '教二 301'],
+    14: ['教一 301', '教三 401', '教三 402', '教二 101'],
+    15: ['教一 301', '教三 401', '教二 101', '教二 201'],
+    16: ['教一 302', '教三 501', '教二 201'],
+  };
+  return new Set(occupiedByTime[hour] || []);
+}
+
+function getNextOccupiedHour(roomName: string): string {
+  const hour = new Date().getHours();
+  const nextMap: Record<string, number> = {
+    '教一 101': 10, '教一 102': 10, '教一 201': 12, '教一 301': 16, '教一 302': 18,
+    '教一 401': 22, '教三 101': 12, '教三 201': 14, '教三 401': 16, '教三 402': 18,
+    '教三 501': 22, '教三 502': 22, '教二 101': 11, '教二 201': 15, '教二 301': 14,
+  };
+  const next = nextMap[roomName];
+  if (next && next > hour) return `${String(next).padStart(2, '0')}:00`;
+  return '闭馆';
+}
+
+export function getClassrooms(): Classroom[] {
+  return classrooms;
+}
+
+export function getFreeClassrooms(building?: string): { room: Classroom; nextOccupied: string }[] {
+  const occupied = getOccupiedRoomsNow();
+  const filtered = building ? classrooms.filter(c => c.building === building) : classrooms;
+  return filtered
+    .filter(c => !occupied.has(c.name))
+    .map(c => ({ room: c, nextOccupied: getNextOccupiedHour(c.name) }));
+}
+
+// ── 考试相关 ──
+export function getExams(): Exam[] {
+  return exams.map(e => ({ ...e }));
+}
+
+export function getUpcomingExams(limit = 5): Exam[] {
+  const today = new Date().toISOString().split('T')[0];
+  return exams
+    .filter(e => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, limit)
+    .map(e => ({ ...e }));
+}
+
+export function getExamCountdown(): { exam: Exam; daysLeft: number }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return exams
+    .filter(e => e.date >= today.toISOString().split('T')[0])
+    .map(e => {
+      const examDate = new Date(e.date);
+      examDate.setHours(0, 0, 0, 0);
+      const daysLeft = Math.ceil((examDate.getTime() - today.getTime()) / 86400000);
+      return { exam: e, daysLeft };
+    })
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+// ── 成绩 / 绩点 ──
+export function getCourseGrades(): CourseGrade[] {
+  return courseGrades.map(g => ({ ...g }));
+}
+
+export function getGpa(): { gpa: number; weightedAvg: number; totalCredits: number; passedCredits: number; grades: CourseGrade[]; trend: { semester: string; gpa: number }[] } {
+  const grades = courseGrades;
+  const pointMap = (score: number): number => {
+    if (score >= 90) return 4.0;
+    if (score >= 85) return 3.7;
+    if (score >= 82) return 3.3;
+    if (score >= 78) return 3.0;
+    if (score >= 75) return 2.7;
+    if (score >= 72) return 2.3;
+    if (score >= 68) return 2.0;
+    if (score >= 64) return 1.5;
+    if (score >= 60) return 1.0;
+    return 0;
+  };
+
+  let weightedSum = 0, totalCredits = 0, totalGpaPoints = 0;
+
+  for (const g of courseGrades) {
+    const points = pointMap(g.score);
+    weightedSum += g.score * g.credits;
+    totalCredits += g.credits;
+    totalGpaPoints += points * g.credits;
+  }
+
+  const gpa = totalCredits > 0 ? Math.round(totalGpaPoints / totalCredits * 100) / 100 : 0;
+  const weightedAvg = totalCredits > 0 ? Math.round(weightedSum / totalCredits * 100) / 100 : 0;
+
+  const semesters = [...new Set(courseGrades.map(g => g.semester))].sort();
+  const trend = semesters.map(sem => {
+    const semGrades = courseGrades.filter(g => g.semester === sem);
+    let sGpa = 0, sCredits = 0, sPoints = 0;
+    for (const g of semGrades) { sPoints += pointMap(g.score) * g.credits; sCredits += g.credits; }
+    return { semester: sem, gpa: sCredits > 0 ? Math.round(sPoints / sCredits * 100) / 100 : 0 };
+  });
+
+  return { gpa, weightedAvg, totalCredits, passedCredits: totalCredits, grades: courseGrades, trend };
 }
