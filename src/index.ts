@@ -1,8 +1,8 @@
 // ============================================================
 // 校园搭子 - 交互式命令行入口
-// 用法: npm run dev
 // ============================================================
 
+import 'dotenv/config';
 import * as readline from 'readline';
 import { processMessage, registerBuiltinTriggers } from './agent.js';
 

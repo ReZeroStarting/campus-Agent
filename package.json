@@ -6,12 +6,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:real": "QWEATHER_MOCK=false tsx src/index.ts",
     "api": "tsx src/api/server.ts",
+    "api:real": "QWEATHER_MOCK=false tsx src/api/server.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "tsx src/test-run.ts",
     "demo": "tsx src/demo.ts",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "test:unit:run": "vitest run"
   },
   "keywords": [
     "agent",
@@ -27,6 +30,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "xlsx": "^0.18.5"
   }
 }

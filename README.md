@@ -70,8 +70,35 @@
 
 ```bash
 npm install
-npm run dev     # 命令行对话
+npm run dev     # 命令行对话（使用 mock 数据）
 npm run api     # HTTP API → http://localhost:3456
+```
+
+### 接入真实天气 API
+
+默认使用模拟数据。接入和风天气免费 API 获得真实天气：
+
+```bash
+# 1. 注册和风天气 → 获取免费 API Key
+#    https://dev.qweather.com/
+
+# 2. 编辑 .env 文件
+QWEATHER_KEY=你的API_KEY
+QWEATHER_CITY=北京
+QWEATHER_MOCK=false
+
+# 3. 启动
+npm run dev:real    # 命令行（真实 API）
+npm run api:real    # HTTP API（真实 API）
+```
+
+API 调用失败时自动降级为模拟数据，不会影响服务可用性。
+
+### 运行测试
+
+```bash
+npm run test:unit     # 129 用例，1.4s 跑完
+npm run demo          # 全场景演示脚本
 ```
 
 ## 📁 项目结构
@@ -112,6 +139,7 @@ src/
 
 ## 🔮 后续规划
 
-- [ ] Phase 2：接入和风天气 API + 学校教务系统
+- [x] Phase 2：接入和风天气 API（已完成）
 - [ ] Phase 3：鸿蒙小艺 Skill 集成（意图共享 + 服务卡片）
 - [ ] Phase 4：鸿蒙原子化服务卡片（课表/考试/余额 Widget）
+- [ ] Phase 5：接入学校教务系统（课表/成绩/一卡通真实数据）

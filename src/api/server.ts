@@ -1,8 +1,8 @@
 // ============================================================
 // 校园搭子 - HTTP API 服务 v2
-// 用于前端/小艺 Skill 调用
-// 用法: tsx src/api/server.ts
 // ============================================================
+
+import 'dotenv/config';
 
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { processMessage, registerBuiltinTriggers, runScheduledCheck } from '../agent.js';
