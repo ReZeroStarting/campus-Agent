@@ -149,6 +149,34 @@ async function main() {
 
   await demo('顺丰取完了');
 
+  // ============ 校园论坛 ============
+  printDivider('场景八：校园论坛 — 信息点自动提取');
+
+  console.log('\n   [ 论坛首页 ]');
+  await wait(500);
+
+  await demo('论坛');
+
+  console.log('\n   [ 查活动 ]');
+  await wait(500);
+
+  await demo('有什么讲座');
+
+  console.log('\n   [ 查失物 ]');
+  await wait(500);
+
+  await demo('最近有人捡到东西吗');
+
+  console.log('\n   [ 查课程评价 ]');
+  await wait(500);
+
+  await demo('机器学习课怎么样');
+
+  console.log('\n   [ 查二手 ]');
+  await wait(500);
+
+  await demo('有人出显示器吗');
+
   // ============ 主动触发 ============
   printDivider('场景六：主动服务 — 低余额自动提醒');
 
@@ -163,6 +191,7 @@ async function main() {
   console.log(`
   校园搭子 — 核心能力总结：
 
+  ✅  校园论坛：热帖汇总 + 活动/失物/课程评价/二手自动提取
   ✅  快递追踪：到站通知 + 取件码 + 路线规划
   ✅  外卖追踪：实时配送状态 + 取餐提醒
   ✅  路线规划：多取件点智能排序 + 时间预估
@@ -173,7 +202,7 @@ async function main() {
   ✅  闭环流程：洗澡→扣费→充值提醒
   ✅  场景联动：天气→穿衣、课表→吃饭→睡眠
 
-  5 个核心场景做深做透，完整闭环可演示。
+  6 个核心场景做深做透，完整闭环可演示。
 `);
 
   await wait(2000);

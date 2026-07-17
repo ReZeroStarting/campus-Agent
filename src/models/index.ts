@@ -3,7 +3,7 @@
 // ============================================================
 
 // ---- 用户表述 → 意图分类映射 ----
-export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'unknown';
+export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'forum' | 'unknown';
 
 export interface IntentResult {
   category: IntentCategory;
@@ -199,4 +199,61 @@ export interface RoutePlan {
   endTime: string;
   steps: RouteStep[];
   tips: string[];
+}
+
+// ============================================================
+// 校园论坛
+// ============================================================
+
+/** 论坛板块 */
+export type ForumSection =
+  | 'secondhand'    // 二手交易
+  | 'lostfound'     // 失物招领
+  | 'coursereview'  // 课程评价
+  | 'events'        // 活动通知
+  | 'treehole'      // 树洞/吐槽
+  | 'studyhelp';    // 学习互助
+
+export const FORUM_SECTION_NAMES: Record<ForumSection, string> = {
+  secondhand: '二手交易',
+  lostfound: '失物招领',
+  coursereview: '课程评价',
+  events: '活动通知',
+  treehole: '树洞',
+  studyhelp: '学习互助',
+};
+
+/** 论坛帖子 */
+export interface ForumPost {
+  id: string;
+  section: ForumSection;
+  title: string;
+  content: string;
+  author: string;           // 匿名则显示「匿名用户」
+  createdAt: string;        // ISO
+  tags: string[];
+  images?: string[];        // 图片URL
+  replyCount: number;
+  viewCount: number;
+  hot: boolean;             // 是否热帖
+}
+
+/** 从帖子自动提取的结构化信息点 */
+export interface ExtractedInfo {
+  id: string;
+  sourcePostId: string;
+  type: 'event' | 'lost_item' | 'found_item' | 'secondhand_deal' | 'course_rating' | 'hot_topic';
+  title: string;
+  summary: string;
+  detail: Record<string, string>;  // 结构化字段，如 { date, location, price, contact }
+  extractedAt: string;
+  validUntil?: string;             // 过期时间（活动结束后自动清理）
+}
+
+/** 论坛查询结果 */
+export interface ForumQueryResult {
+  query: string;
+  posts: ForumPost[];
+  extractedInfos: ExtractedInfo[];
+  summary: string;
 }

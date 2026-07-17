@@ -16,6 +16,7 @@ import {
   handleRoutePlan,
   handlePickupComplete,
 } from './scenes/delivery.js';
+import { handleForumQuery } from './scenes/forum.js';
 import { getCardState, getShowerState, getWaterIntake, addWater, getActivePackages, getPickupPoints } from './data/mock.js';
 import { getUserHabits, getLongTermKnowledge } from './core/memory/engine.js';
 import { fetchWeather } from './services/weather.js';
@@ -198,6 +199,11 @@ export async function processMessage(text: string): Promise<AgentResponse> {
       break;
     }
 
+    case 'forum': {
+      response = handleForumQuery(text);
+      break;
+    }
+
     default:
       response = {
         text: getFallbackResponse(text),
@@ -312,7 +318,7 @@ function getFallbackResponse(text: string): string {
   if (text.includes('晚安')) {
     return handleSleepQuery().text;
   }
-  return '抱歉，我还不太理解。\n\n我能帮你：\n• 快递："查快递" "取件码是多少"\n• 外卖："外卖到了吗"\n• 取件："帮我规划路线" "取完了"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"\n• 吃饭："中午吃什么"\n• 喝水："喝了200ml"\n• 睡眠："几点睡"';
+  return '抱歉，我还不太理解。\n\n我能帮你：\n• 快递："查快递" "取件码是多少"\n• 外卖："外卖到了吗"\n• 取件："帮我规划路线" "取完了"\n• 论坛："论坛首页" "有什么活动" "课程评价"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"\n• 吃饭："中午吃什么"\n• 喝水："喝了200ml"\n• 睡眠："几点睡"';
 }
 
 // ---- 主动触发（由定时任务调用） ----
