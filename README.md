@@ -102,6 +102,13 @@ npm run test:unit     # 129 用例，1.4s 跑完
 npm run demo          # 全场景演示脚本
 ```
 
+### Docker 部署
+
+```bash
+docker compose up -d        # 一键启动 HTTP API
+docker compose down         # 停止
+```
+
 ## 📁 项目结构
 
 ```

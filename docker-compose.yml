@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  campus-buddy:
+    build: .
+    container_name: campus-buddy
+    ports:
+      - "3456:3456"
+    environment:
+      - QWEATHER_KEY=${QWEATHER_KEY:-}
+      - QWEATHER_CITY=${QWEATHER_CITY:-北京}
+      - QWEATHER_MOCK=${QWEATHER_MOCK:-true}
+    restart: unless-stopped
