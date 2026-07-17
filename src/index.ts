@@ -21,7 +21,7 @@ async function main() {
   console.log('========================================');
   console.log('');
   console.log('  输入 "退出" 或 "exit" 结束对话');
-  console.log('  试试说：我要洗澡 / 明天什么课 / 卡里还有多少钱 / 查快递 / 论坛首页');
+  console.log('  试试说：我要洗澡 / 明天什么课 / 卡里还有多少钱 / 教三在哪 / 论坛首页');
   console.log('');
 
   const ask = () => {

@@ -3,7 +3,7 @@
 // ============================================================
 
 // ---- 用户表述 → 意图分类映射 ----
-export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'forum' | 'unknown';
+export type IntentCategory = 'shower' | 'schedule' | 'card' | 'weather' | 'water' | 'delivery' | 'forum' | 'map' | 'unknown';
 
 export interface IntentResult {
   category: IntentCategory;
@@ -256,4 +256,44 @@ export interface ForumQueryResult {
   posts: ForumPost[];
   extractedInfos: ExtractedInfo[];
   summary: string;
+}
+
+// ============================================================
+// 校园地图
+// ============================================================
+
+/** 建筑类型 */
+export type BuildingType =
+  | 'teaching'      // 教学楼
+  | 'lab'            // 实验楼
+  | 'library'        // 图书馆
+  | 'canteen'        // 食堂
+  | 'dormitory'      // 宿舍
+  | 'admin'          // 行政楼
+  | 'sports'         // 体育馆/操场
+  | 'hospital'       // 校医院
+  | 'service';       // 服务点（打印/银行/快递）
+
+/** 校园建筑 */
+export interface CampusBuilding {
+  id: string;
+  name: string;
+  shortName: string;         // 简称，如"教三"
+  type: BuildingType;
+  description: string;       // 一句话介绍
+  location: string;          // 方位描述，如"校园东南角"
+  floorInfo: string;         // 楼层分布
+  services: string[];        // 提供的服务
+  nearby: string[];          // 邻近建筑 id
+  walkFromCenter: number;    // 从校园中心步行分钟数
+  openTime?: string;         // 开放时间
+  tips?: string;             // 温馨提示
+}
+
+/** 地图查询结果 */
+export interface MapQueryResult {
+  type: 'building' | 'service' | 'route';
+  buildings: CampusBuilding[];
+  answer: string;
+  suggestions: string[];
 }

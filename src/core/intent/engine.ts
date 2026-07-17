@@ -95,6 +95,18 @@ const rules: IntentRule[] = [
     ],
     entities: [],
   },
+  {
+    category: 'map',
+    keywords: ['教学楼', '实验楼', '图书馆', '食堂', '宿舍', '行政楼', '校医院', '体育馆', '操场', '打印', '在哪', '怎么走', '去哪', '哪栋', '哪个楼', '补办', '一卡通', '成绩单', '教一', '教二', '教三', '教四', '教五', '教六', '地图', '校园'],
+    patterns: [
+      /(教[一二三四五六]|教学楼|实验楼|图书馆|食堂|宿舍|行政楼|校医院|体育馆|操场)/,
+      /(在哪|怎么走|怎么去|多远)/,
+      /(去哪|哪里|什么地方).*(打印|补办|办|充|取|交)/,
+      /(补办|办理).*(一卡通|学生证|成绩单)/,
+      /(地图|校园地图)/,
+    ],
+    entities: [],
+  },
 ];
 
 /**
@@ -162,5 +174,5 @@ export function recognizeIntent(text: string): IntentResult {
  * 获取所有支持的意图类别
  */
 export function getSupportedIntents(): IntentCategory[] {
-  return ['shower', 'schedule', 'card', 'weather', 'water', 'delivery', 'forum'];
+  return ['shower', 'schedule', 'card', 'weather', 'water', 'delivery', 'forum', 'map'];
 }

@@ -177,6 +177,34 @@ async function main() {
 
   await demo('有人出显示器吗');
 
+  // ============ 校园地图 ============
+  printDivider('场景九：校园地图 — 建筑定位 + 服务反查 + 路线规划');
+
+  console.log('\n   [ 设置位置 ]');
+  await wait(500);
+
+  await demo('我在教三');
+
+  console.log('\n   [ 查建筑 ]');
+  await wait(500);
+
+  await demo('图书馆在哪');
+
+  console.log('\n   [ 服务反查 ]');
+  await wait(500);
+
+  await demo('去哪打成绩单');
+
+  console.log('\n   [ 路线导航 ]');
+  await wait(500);
+
+  await demo('到图书馆怎么走');
+
+  console.log('\n   [ 校园总览 ]');
+  await wait(500);
+
+  await demo('校园地图');
+
   // ============ 主动触发 ============
   printDivider('场景六：主动服务 — 低余额自动提醒');
 
@@ -191,6 +219,7 @@ async function main() {
   console.log(`
   校园搭子 — 核心能力总结：
 
+  ✅  校园地图：建筑定位 + 服务反查（去哪打成绩单）+ 楼间导航
   ✅  校园论坛：热帖汇总 + 活动/失物/课程评价/二手自动提取
   ✅  快递追踪：到站通知 + 取件码 + 路线规划
   ✅  外卖追踪：实时配送状态 + 取餐提醒
@@ -202,7 +231,7 @@ async function main() {
   ✅  闭环流程：洗澡→扣费→充值提醒
   ✅  场景联动：天气→穿衣、课表→吃饭→睡眠
 
-  6 个核心场景做深做透，完整闭环可演示。
+  7 个核心场景做深做透，完整闭环可演示。
 `);
 
   await wait(2000);
