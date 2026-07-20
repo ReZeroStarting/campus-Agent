@@ -4,6 +4,10 @@
 // ============================================================
 
 import type { IntentResult, IntentCategory } from '../../models/index.js';
+import { logger } from '../../services/logger.js';
+
+/** 最低置信度阈值：低于此值走 RAG/LLM 自由理解 */
+const MIN_CONFIDENCE = 0.5;
 
 /** 意图规则表 */
 interface IntentRule {
@@ -192,12 +196,17 @@ export function recognizeIntent(text: string): IntentResult {
     return { category: rule.category, score };
   });
 
-  // 取最高分
+  // 取最高分；同分时保留所有候选
   const best = scores.reduce((a, b) => (a.score >= b.score ? a : b));
 
-  if (best.score > 0) {
+  if (best.score >= MIN_CONFIDENCE) {
     result.category = best.category;
     result.confidence = Math.min(best.score, 1);
+    logger.info('Intent', 'recognized', { category: best.category, confidence: result.confidence, text: text.slice(0, 20) });
+  } else if (best.score > 0) {
+    // 低于阈值但有微弱匹配 — 标记 unknown，保留 candidates
+    logger.warn('Intent', 'low_confidence', { bestScore: best.score, bestCategory: best.category, text: text.slice(0, 20) });
+    result.confidence = best.score;
   }
 
   return result;

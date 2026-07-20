@@ -11,6 +11,8 @@ import type {
   IntentCategory,
 } from '../../models/index.js';
 import { archiveSession, listSessions, loadAllSessions, restoreSession, type SavedSession, type SessionSummary } from './history.js';
+import { readJson, writeJson } from '../../services/storage.js';
+import { logger } from '../../services/logger.js';
 
 // ---- 长期知识（校园规则，相对固定） ----
 
@@ -45,7 +47,31 @@ const defaultHabits: UserHabits = {
   commuteToSchool: 8,
 };
 
-let userHabits: UserHabits = { ...defaultHabits };
+const HABITS_FILE = 'user-habits.json';
+
+let userHabits: UserHabits;
+
+function loadUserHabits(): UserHabits {
+  try {
+    const saved = readJson<UserHabits>(HABITS_FILE);
+    if (saved && typeof saved.showerTime === 'string' && typeof saved.waterGoal === 'number') {
+      logger.info('Memory', 'habits_loaded_from_file', { file: HABITS_FILE });
+      return { ...defaultHabits, ...saved };
+    }
+  } catch { /* ignore corrupted file */ }
+  logger.info('Memory', 'habits_using_defaults');
+  return { ...defaultHabits };
+}
+
+function saveUserHabits(): void {
+  try {
+    writeJson(HABITS_FILE, userHabits);
+  } catch (err) {
+    logger.warn('Memory', 'habits_save_failed', { error: String(err) });
+  }
+}
+
+userHabits = loadUserHabits();
 
 // ---- 短期记忆（会话上下文，单次对话） ----
 
@@ -85,9 +111,11 @@ export function getUserHabits(): UserHabits {
   return { ...userHabits };
 }
 
-/** 更新用户习惯 */
+/** 更新用户习惯（自动持久化） */
 export function updateUserHabits(partial: Partial<UserHabits>): UserHabits {
   Object.assign(userHabits, partial);
+  saveUserHabits();
+  logger.info('Memory', 'habits_updated', { keys: Object.keys(partial) });
   return getUserHabits();
 }
 
@@ -106,6 +134,10 @@ export function learnPattern(intent: IntentCategory, time: string): boolean {
       break;
     default:
       break;
+  }
+
+  if (updated) {
+    saveUserHabits();
   }
 
   return updated;

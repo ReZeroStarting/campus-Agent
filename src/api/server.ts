@@ -26,6 +26,7 @@ import {
 import { getUserHabits } from '../core/memory/engine.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3456;
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3456,http://localhost:3000,http://localhost:5173').split(',').map(s => s.trim());
 
 registerBuiltinTriggers();
 
@@ -71,10 +72,10 @@ function readRawBuffer(req: IncomingMessage): Promise<Buffer> {
 
 // ---- 响应工具 ----
 
-function sendJSON(res: ServerResponse, data: unknown, status = 200) {
+function sendJSON(res: ServerResponse, data: unknown, status = 200, origin?: string) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin || ALLOWED_ORIGINS[0],
   });
   res.end(JSON.stringify(data, null, 2));
 }
@@ -84,10 +85,13 @@ function sendJSON(res: ServerResponse, data: unknown, status = 200) {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
 
-  // CORS
+  // CORS — 动态 origin
+  const origin = req.headers.origin || '';
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS.includes('*') ? origin : ALLOWED_ORIGINS[0];
+
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'POST, GET, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     });

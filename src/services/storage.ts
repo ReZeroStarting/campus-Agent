@@ -15,7 +15,7 @@ function getDataDir(): string {
   return dir;
 }
 
-function readJson<T>(filename: string): T | null {
+export function readJson<T>(filename: string): T | null {
   try {
     const path = join(getDataDir(), filename);
     if (!existsSync(path)) return null;
@@ -27,7 +27,7 @@ function readJson<T>(filename: string): T | null {
   }
 }
 
-function writeJson(filename: string, data: unknown): void {
+export function writeJson(filename: string, data: unknown): void {
   const path = join(getDataDir(), filename);
   writeFileSync(path, JSON.stringify(data, null, 2), 'utf-8');
   console.log(`[Storage] 已保存 ${filename}`);

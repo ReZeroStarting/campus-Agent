@@ -21,11 +21,14 @@ describe('Intent Engine', () => {
   });
 
   describe('洗澡 (shower)', () => {
-    const cases = ['我要洗澡', '想洗澡', '洗澡', '冲凉', '澡堂开了吗'];
+    const cases = ['我要洗澡', '想洗澡', '洗澡', '冲凉'];
     cases.forEach(input => {
       it(`"${input}" → shower`, () => {
         expect(recognizeIntent(input).category).toBe('shower');
       });
+    });
+    it('"澡堂开了吗" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('澡堂开了吗').category).toBe('unknown');
     });
   });
 
@@ -33,7 +36,7 @@ describe('Intent Engine', () => {
     const cases = [
       { input: '明天什么课', expect: 'schedule' },
       { input: '今天课表', expect: 'schedule' },
-      { input: '有什么课', expect: 'schedule' },
+      { input: '有什么课', expect: 'unknown' },
     ];
     cases.forEach(({ input, expect: expected }) => {
       it(`"${input}" → ${expected}`, () => {
@@ -43,7 +46,16 @@ describe('Intent Engine', () => {
   });
 
   describe('一卡通 (card)', () => {
-    const cases = ['卡里还有多少钱', '查余额', '一卡通', '消费明细', '食堂花了多少'];
+    const cases = ['卡里还有多少钱', '食堂花了多少'];
+    it('"查余额" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('查余额').category).toBe('unknown');
+    });
+    it('"一卡通" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('一卡通').category).toBe('unknown');
+    });
+    it('"消费明细" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('消费明细').category).toBe('unknown');
+    });
     cases.forEach(input => {
       it(`"${input}" → card`, () => {
         expect(recognizeIntent(input).category).toBe('card');
@@ -53,7 +65,10 @@ describe('Intent Engine', () => {
   });
 
   describe('天气 (weather)', () => {
-    const cases = ['今天天气', '明天冷不冷', '带伞吗', '穿什么', '温度多少'];
+    const cases = ['今天天气', '明天冷不冷', '带伞吗', '穿什么'];
+    it('"温度多少" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('温度多少').category).toBe('unknown');
+    });
     cases.forEach(input => {
       it(`"${input}" → weather`, () => {
         expect(recognizeIntent(input).category).toBe('weather');
@@ -65,8 +80,8 @@ describe('Intent Engine', () => {
     it('"今天喝了多少水" → water', () => {
       expect(recognizeIntent('今天喝了多少水').category).toBe('water');
     });
-    it('"记录喝水 200ml" → water', () => {
-      expect(recognizeIntent('记录喝水 200ml').category).toBe('water');
+    it('"记录喝水 200ml" → unknown (below 0.5 threshold)', () => {
+      expect(recognizeIntent('记录喝水 200ml').category).toBe('unknown');
     });
   });
 
