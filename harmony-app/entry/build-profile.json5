@@ -1,0 +1,14 @@
+{
+  "apiType": "stageMode",
+  "buildOption": { "sourceOption": { "workers": [] } },
+  "buildOptionSet": [
+    {
+      "name": "release",
+      "arkOptions": { "obfuscation": { "ruleOptions": { "enable": false } } }
+    }
+  ],
+  "targets": [
+    { "name": "default" },
+    { "name": "ohosTest" }
+  ]
+}

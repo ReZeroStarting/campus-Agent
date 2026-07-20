@@ -4,8 +4,8 @@
   "description": "大学生的校园生活 Agent",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#4A90D9",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1E7AFC",
   "icons": [
     {
       "src": "/icon-192.png",

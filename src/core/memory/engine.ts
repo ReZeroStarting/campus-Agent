@@ -10,6 +10,7 @@ import type {
   UserHabits,
   IntentCategory,
 } from '../../models/index.js';
+import { archiveSession, listSessions, loadAllSessions, restoreSession, type SavedSession, type SessionSummary } from './history.js';
 
 // ---- 长期知识（校园规则，相对固定） ----
 
@@ -134,9 +135,50 @@ export function updateSessionContext(updates: Partial<ShortTermMemory['context']
   Object.assign(currentSession.context, updates);
 }
 
-/** 重置会话（新对话开始） */
+/** 重置会话（新对话开始）—— 自动归档当前会话到历史 */
 export function resetSession(): void {
+  if (currentSession.history.length > 0) {
+    archiveSession(currentSession);
+  }
   currentSession = createSession();
+}
+
+/** 获取历史会话列表 */
+export function getSessionList(limit = 10): SessionSummary[] {
+  return listSessions(limit);
+}
+
+/** 恢复某个历史会话到当前会话 */
+export function resumeSession(sessionId: string): ShortTermMemory | null {
+  const saved = restoreSession(sessionId);
+  if (!saved) return null;
+  currentSession = {
+    sessionId: saved.sessionId,
+    context: saved.context,
+    history: saved.history,
+  };
+  return currentSession;
+}
+
+/** 获取最近 N 个会话（含当前） */
+export function getRecentConversations(limit = 5): Array<SessionSummary | {
+  sessionId: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  messageCount: number;
+  isCurrent: true;
+}> {
+  const current: SessionSummary & { isCurrent: true } = {
+    sessionId: currentSession.sessionId,
+    title: currentSession.history.find(m => m.role === 'user')?.text.slice(0, 30) ?? '当前会话',
+    startTime: currentSession.history[0]?.time ?? new Date().toISOString(),
+    endTime: currentSession.history[currentSession.history.length - 1]?.time ?? new Date().toISOString(),
+    messageCount: currentSession.history.length,
+    isCurrent: true,
+  };
+  const history = listSessions(limit);
+  return [current, ...history];
 }
 
 /** 重置所有记忆（仅测试用） */

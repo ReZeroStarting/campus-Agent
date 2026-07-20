@@ -2,3 +2,20 @@ node_modules/
 dist/
 *.tsbuildinfo
 .env
+
+# HarmonyOS build outputs
+harmony-app/.hvigor/
+harmony-app/.idea/
+harmony-app/entry/build/
+harmony-app/**/build/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime data
+data/history/

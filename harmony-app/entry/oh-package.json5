@@ -1,0 +1,10 @@
+{
+  "modelVersion": "6.1.1",
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "校园搭子主模块",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {}
+}

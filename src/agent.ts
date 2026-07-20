@@ -4,7 +4,21 @@
 // ============================================================
 
 import { recognizeIntent } from './core/intent/engine.js';
-import { recordMessage, updateSessionContext, getSession, resetSession, learnPattern } from './core/memory/engine.js';
+import { recordMessage, updateSessionContext, getSession, resetSession, learnPattern, getRecentConversations, resumeSession as engineResumeSession } from './core/memory/engine.js';
+import { listSessions, archiveSession } from './core/memory/history.js';
+import { generateResponse } from './core/llm/generator.js';
+import { isLlmAvailable } from './core/llm/client.js';
+import { ragQuery, shouldUseRag } from './core/rag/pipeline.js';
+import { initScheduleImport } from './services/scheduleImport.js';
+import { getImportedGrades, setImportedGrades, clearImportedGrades, parseGradeExcel } from './services/gradeImport.js';
+import { loadGrades, saveGrades, getStorageStatus } from './services/storage.js';
+
+// 启动时加载持久化数据
+initScheduleImport();
+if (loadGrades()) {
+  setImportedGrades(loadGrades()!);
+  console.log('[Agent] 已加载持久化成绩数据');
+}
 import { checkTriggers, registerTrigger, resetCooldowns } from './core/triggers/engine.js';
 import { handleShowerIntent, handleShowerDone } from './scenes/shower.js';
 import { handleScheduleQuery } from './scenes/schedule.js';
@@ -142,6 +156,53 @@ export async function processMessage(text: string): Promise<AgentResponse> {
     }
   }
 
+  // ---- 对话管理：开始新对话 / 查看历史 / 恢复上轮 ----
+
+  // 「新对话」/「开始新对话」/「清空对话」→ 归档当前 + 重置
+  if (trimmed === '新对话' || trimmed === '开始新对话' || trimmed === '清空对话' || trimmed === '重置对话' || trimmed === '重新开始') {
+    resetSession();
+    return { text: '✨ 已开启新对话！之前的历史已自动保存，输入「历史」可查看。', suggestions: ['查课表', '查一卡通', '我要洗澡'] };
+  }
+
+  // 「历史」/「历史对话」/「对话记录」→ 列出历史会话
+  if (trimmed === '历史' || trimmed === '历史对话' || trimmed === '对话记录' || trimmed === '历史记录') {
+    const list = getRecentConversations(8);
+    if (list.length === 1 && (list[0] as any).messageCount === 0) {
+      return { text: '还没有历史对话。', suggestions: ['开始新对话'] };
+    }
+    const lines = list.map((s, i) => {
+      const isCurrent = (s as any).isCurrent ? '🟢 ' : '   ';
+      const time = new Date(s.startTime).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return `${isCurrent}${i + 1}. ${s.title}  (${s.messageCount}条 · ${time})`;
+    });
+    return {
+      text: `📚 你的对话历史：\n${lines.join('\n')}\n\n输入「回到 N」继续上次对话`,
+      suggestions: ['新对话', '回到 1'],
+    };
+  }
+
+  // 「回到 N」/「继续上次」→ 恢复第 N 个历史会话
+  const resumeMatch = trimmed.match(/^回到\s*(\d+)$/) || (trimmed.includes('继续上次') ? ['继续上次', '1'] : null);
+  if (resumeMatch) {
+    const idx = parseInt(resumeMatch[1]) - 1;
+    const list = listSessions(20);
+    if (idx < 0 || idx >= list.length) {
+      return { text: `没有第 ${idx + 1} 个历史对话。`, suggestions: ['历史', '新对话'] };
+    }
+    // 先归档当前会话
+    if (getSession().history.length > 0) {
+      archiveSession(getSession());
+    }
+    const restored = engineResumeSession(list[idx].sessionId);
+    if (restored) {
+      const lastMsg = restored.history[restored.history.length - 1];
+      return {
+        text: `↩️ 已回到「${list[idx].title}」\n最后一句：「${lastMsg.text}」\n\n继续聊吧～`,
+        suggestions: ['历史', '新对话'],
+      };
+    }
+  }
+
   // 「早安」/「早上好」/「日报」→ 智能早报
   if (trimmed.includes('早安') || trimmed.includes('早上好') || trimmed.includes('日报') || trimmed.includes('今天有什么') || trimmed.includes('今日简报')) {
     return handleMorningBrief();
@@ -245,12 +306,49 @@ export async function processMessage(text: string): Promise<AgentResponse> {
       break;
     }
 
-    default:
+    default: {
+      // RAG 优先：先查校园知识库
+      if (shouldUseRag(text)) {
+        const ragResult = await ragQuery(text);
+        if (ragResult) {
+          const ragSources = ragResult.sources.length > 0
+            ? `\n📚 参考：${ragResult.sources.join('、')}`
+            : '';
+          response = {
+            text: ragResult.text + ragSources,
+            suggestions: ragResult.suggestions,
+          };
+          recordMessage('agent', response.text);
+          return response; // RAG 结果直接返回，不走 LLM 增强（已调用过 LLM）
+        }
+      }
+      // RAG 无结果或不可用，走模板兜底
       response = {
         text: getFallbackResponse(text),
         suggestions: ['查课表', '查一卡通余额', '我要洗澡', '查天气'],
       };
       break;
+    }
+  }
+
+  // ---- LLM 增强回复（已知意图）或 LLM 兜底（未知意图） ----
+  // 保留原始模板结果作为降级
+  const templateFallback: AgentResponse = {
+    text: response.text,
+    suggestions: response.suggestions,
+  };
+
+  if (isLlmAvailable()) {
+    console.log(`[Agent] LLM 增强回复 (intent: ${intent.category})`);
+    response = await generateResponse({
+      userMessage: text,
+      intent: intent.category,
+      sceneResult: templateFallback,
+      fallbackForUnknown: {
+        text: getFallbackResponse(text),
+        suggestions: ['查课表', '查一卡通余额', '我要洗澡', '查天气'],
+      },
+    });
   }
 
   // 记录回复
@@ -349,17 +447,43 @@ function handleSleepQuery(): AgentResponse {
   return { text: msg };
 }
 
+// ── 人格化 问候/道谢 ──
+const GREETINGS = [
+  '嗨！我是小搭，你的校园生活搭子 🙌 课表、余额、考试、快递……想问什么随时说~',
+  '你好呀！🌟 查课表、看余额、找教室都找我，一句话搞定。',
+  '嘿！在呢~ 👋 今天需要我帮忙查什么？',
+];
+const THANKS_REPLIES = [
+  '客气啥，随时找我~ 😄',
+  '不客气！帮到你就好 ✨',
+  '举手之劳~有问题再来 👋',
+];
+const SORRY_PREFIXES = [
+  'emmm 这个还没学会…', '唔，这个我不太懂…', '啊，超出我的知识范围了…',
+];
+const CHEER_UP = [
+  '💪 加油！', '你可以的！✨', '冲冲冲 🚀', '今天也很棒 🌟',
+];
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
 function getFallbackResponse(text: string): string {
-  if (text.includes('你好') || text.includes('嗨') || text.includes('hi')) {
-    return '你好！我是你的校园搭子小搭~ 想查课表、看余额、还是准备去洗澡？';
+  if (text.includes('你好') || text.includes('嗨') || text.includes('hi') || text.includes('在吗') || text.includes('在不在')) {
+    return pick(GREETINGS);
   }
-  if (text.includes('谢谢') || text.includes('感谢')) {
-    return '不客气！有需要随时找我~';
+  if (text.includes('谢谢') || text.includes('感谢') || text.includes('多谢')) {
+    return pick(THANKS_REPLIES);
   }
-  if (text.includes('晚安')) {
+  if (text.includes('晚安') || text.includes('睡了')) {
     return handleSleepQuery().text;
   }
-  return '抱歉，我还不太理解。\n\n我能帮你：\n• 早报："早安" — 天气+课表+考试+快递一站式推送\n• 考试："考试倒计时" "还有几天考高数"\n• 教室："找空教室" "教三有插座的自习室"\n• 绩点："绩点多少" "够不够3.5"\n• 地图："教三在哪" "去哪打印"\n• 快递："查快递" "取件码"\n• 论坛："论坛首页" "有什么活动"\n• 课表："明天什么课"\n• 一卡通："卡里还有多少钱"\n• 洗澡："我要洗澡"\n• 天气："今天天气"';
+  if (text.includes('加油') || text.includes('冲冲冲')) {
+    return pick(CHEER_UP);
+  }
+  if (text.includes('无聊') || text.includes('不知道干嘛')) {
+    return '那就去逛逛论坛？说不定有好玩的活动或者想买的二手~ 或者查查有没有快递到了？📦';
+  }
+  return pick(SORRY_PREFIXES) + '\n\n我能帮你的：\n• "早安" — 一日早报，天气课表快递全知道\n• "明天什么课" "考试倒计时" "绩点多少"\n• "找空教室" "卡里还有多少钱" "查快递"\n• "论坛" "教三在哪" "我要洗澡" "今天天气"\n\n试试看？😊';
 }
 
 // ---- 主动触发（由定时任务调用） ----

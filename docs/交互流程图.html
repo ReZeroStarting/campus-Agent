@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1100">
+<title>校园搭子 · 鸿蒙交互流程图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"HarmonyOS Sans","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f4f8;padding:32px;display:flex;flex-direction:column;align-items:center;gap:24px}
+h1{font-size:28px;color:#1a1a2e;text-align:center}
+h2{font-size:17px;color:#4a5568;margin-bottom:20px;text-align:center;border-bottom:2px solid #CF0F0F;padding-bottom:8px;display:inline-block}
+.diagram{background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.05);width:1050px}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#CF0F0F,#e03030);color:#fff;padding:5px 16px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;margin-left:12px;vertical-align:middle}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:#fff}
+
+/* Big boxes */
+.big-row{display:flex;gap:10px;margin-bottom:10px}
+.big-box{border-radius:12px;padding:16px;text-align:center;font-weight:600;font-size:13px}
+.bb-red{background:linear-gradient(135deg,#CF0F0F,#b80a0a);color:#fff;flex:1}
+.bb-blue{background:linear-gradient(135deg,#1E7AFC,#0052d4);color:#fff;flex:1}
+.bb-green{background:linear-gradient(135deg,#11998e,#0d6e63);color:#fff;flex:1}
+.bb-purple{background:linear-gradient(135deg,#8B5CF6,#6d28d9);color:#fff;flex:1}
+.bb-orange{background:linear-gradient(135deg,#F59E0B,#d97706);color:#fff;flex:1}
+.big-box .bbt{font-size:18px;margin-bottom:4px}
+.big-box .bbd{font-size:11px;font-weight:400;opacity:.85;line-height:1.5}
+
+/* Flow */
+.flow{display:flex;align-items:center;gap:0;margin-bottom:8px;justify-content:center}
+.flow-step{background:#fff;border:2px solid #e2e8f0;border-radius:10px;padding:12px 15px;text-align:center;font-size:12px;font-weight:500;min-width:100px}
+.flow-step.active{border-color:#CF0F0F;background:#FFF5F5}
+.flow-step.feat{border-color:#1E7AFC;background:#EEF2FF}
+.flow-arrow{font-size:18px;color:#94a3b8;padding:0 4px;font-weight:700;min-width:24px;text-align:center}
+.flow-branch{display:flex;gap:60px;justify-content:center;margin-top:6px}
+.flow-branch-item{text-align:center}
+.flow-branch-item .label{font-size:12px;font-weight:600;margin-bottom:6px}
+
+/* Cards row */
+.card-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.card-item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 10px;text-align:center;font-size:11px}
+.card-item .ci{font-size:28px;margin-bottom:4px}
+.card-item .ct{font-weight:600;font-size:12px;margin-bottom:2px}
+.card-item .cd{color:#8899bb;line-height:1.4}
+
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tc{background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:16px;text-align:center}
+.tc1{border-color:#93c5fd;background:#dbeafe}
+.tc2{border-color:#fcd34d;background:#fef3c7}
+.tc3{border-color:#6ee7b7;background:#d1fae5}
+.tc .tct{font-size:15px;font-weight:700;margin-bottom:4px}
+.tc .tcd{font-size:11px;color:#64748b;line-height:1.5}
+
+.metric-row{display:flex;gap:16px;justify-content:center}
+.metric{text-align:center;padding:8px 16px;background:#f0f4ff;border-radius:10px}
+.metric .mv{font-size:24px;font-weight:800;color:#1E7AFC}
+.metric .ml{font-size:10px;color:#667799;margin-top:2px}
+
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.tag{padding:5px 12px;background:#f7f8fa;border:1px solid #e5e7eb;border-radius:8px;font-size:11px;font-weight:500}
+</style>
+</head>
+<body>
+
+<h1>🎒 校园搭子 · 鸿蒙原生应用 <span class="badge"><span class="badge-dot"></span> HarmonyOS API 12</span></h1>
+
+<!-- Architecture overview -->
+<div class="diagram">
+  <h2>🏗️ 鸿蒙原生系统架构</h2>
+  <div class="big-row">
+    <div class="big-box bb-red">
+      <div class="bbt">🤖 小艺唤醒</div>
+      <div class="bbd">12个Deeper Intent<br>ServiceAbility接收分发<br>"早安"→早报·"洗澡"→余额</div>
+    </div>
+    <div class="big-box bb-blue">
+      <div class="bbt">📱 桌面卡片</div>
+      <div class="bbd">5张Form Widget<br>FormAbility定时刷新<br>早安·课表·考试·余额·快递</div>
+    </div>
+    <div class="big-box bb-green">
+      <div class="bbt">💬 原生对话</div>
+      <div class="bbd">ArkTS主对话页面<br>富文本卡片渲染<br>欢迎引导+场景入口</div>
+    </div>
+  </div>
+  <div style="text-align:center;color:#94a3b8;font-size:20px;margin:6px 0">⬇ 统一下沉到端侧引擎</div>
+  <div class="big-row">
+    <div class="big-box bb-purple" style="flex:2">
+      <div class="bbt">⚡ CampusAgent（端侧一体化引擎）</div>
+      <div class="bbd">12场景关键词匹配 · <1ms · 本地Mock数据 · 离线可用</div>
+    </div>
+    <div class="big-box bb-orange" style="flex:1">
+      <div class="bbt">🌐 远程增强</div>
+      <div class="bbd">DeepSeek LLM润色<br>2s超时自动降级<br>三层保障</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed flow -->
+<div class="diagram">
+  <h2>🔄 核心交互流程（端侧优先）</h2>
+  <div class="flow">
+    <div class="flow-step feat">🎤 用户输入<br><span style="font-size:10px;color:#667799">语音/文字/小艺唤醒</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">⚡ 端侧意图匹配<br><span style="font-size:10px;color:#667799">关键词引擎·&lt;1ms</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step feat">🎯 命中？</div>
+  </div>
+  <div class="flow-branch">
+    <div class="flow-branch-item">
+      <div class="label" style="color:#10B981">✅ 命中 → 本地渲染</div>
+      <div class="flow">
+        <div class="flow-step">📊 Mock数据</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step feat">🌐 异步LLM<br><span style="font-size:10px">2s超时</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">💬 原生卡片回复</div>
+      </div>
+    </div>
+    <div class="flow-branch-item">
+      <div class="label" style="color:#EF4444">❌ 未命中 → 远程兜底</div>
+      <div class="flow">
+        <div class="flow-step feat">🌐 LLM兜底<br><span style="font-size:10px">2s超时</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🛡️ 降级模板</div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:12px;color:#64748b;font-size:13px">
+    ⬇ 全程写入三层记忆（preferences 持久化）
+  </div>
+  <div class="three-col" style="margin-top:10px">
+    <div class="tc tc1">
+      <div class="tct">🧠 短期记忆</div>
+      <div class="tcd">会话上下文·最近20话题<br>"够了"→关联上次洗澡预算</div>
+    </div>
+    <div class="tc tc2">
+      <div class="tct">📈 中期记忆</div>
+      <div class="tcd">用户行为模式·跨会话<br>几点洗澡·常去几食堂</div>
+    </div>
+    <div class="tc tc3">
+      <div class="tct">🏛️ 长期记忆</div>
+      <div class="tcd">校园常识·静态知识<br>教三到宿舍8分钟</div>
+    </div>
+  </div>
+</div>
+
+<!-- Widgets detail -->
+<div class="diagram">
+  <h2>🖼️ 5张鸿蒙服务卡片</h2>
+  <div class="card-row">
+    <div class="card-item" style="border-color:rgba(30,122,252,.2);background:#f8faff">
+      <div class="ci">🌅</div><div class="ct">智能早报</div>
+      <div class="cd">2×2<br>07:00推送<br>天气+课表+考试</div>
+    </div>
+    <div class="card-item" style="border-color:rgba(16,185,129,.2);background:#f8fdf8">
+      <div class="ci">📅</div><div class="ct">今日课表</div>
+      <div class="cd">2×2 / 4×2<br>07:30推送<br>时间段+教室</div>
+    </div>
+    <div class="card-item" style="border-color:rgba(245,158,11,.2);background:#fffdf0">
+      <div class="ci">📝</div><div class="ct">考试倒计时</div>
+      <div class="cd">1×2 / 2×2<br>08:00推送<br>3天内数字标红</div>
+    </div>
+    <div class="card-item" style="border-color:rgba(207,15,15,.15);background:#fffafa">
+      <div class="ci">💳</div><div class="ct">一卡通余额</div>
+      <div class="cd">1×2<br>30分钟轮询<br>低于20元变色</div>
+    </div>
+    <div class="card-item" style="border-color:rgba(139,92,246,.2);background:#faf8ff">
+      <div class="ci">📦</div><div class="ct">快递提醒</div>
+      <div class="cd">1×2 / 2×2<br>事件触发<br>取件码直达</div>
+    </div>
+  </div>
+</div>
+
+<!-- Xiaoyi -->
+<div class="diagram">
+  <h2>🤖 小艺 Deeper Intent 集成</h2>
+  <div style="text-align:center;margin-bottom:12px;color:#667799;font-size:13px">
+    ServiceAbility 接收 12 个 Intent → 路由到 CampusAgent → 返回原生卡片回复
+  </div>
+  <div class="tag-row">
+    <div class="tag">query_building 查建筑</div>
+    <div class="tag">query_exam 考试</div>
+    <div class="tag">query_classroom 空教室</div>
+    <div class="tag">query_gpa 绩点</div>
+    <div class="tag">query_shower 洗澡</div>
+    <div class="tag">query_schedule 课表</div>
+    <div class="tag">query_card 一卡通</div>
+    <div class="tag">query_delivery 快递</div>
+    <div class="tag">query_forum 论坛</div>
+    <div class="tag">query_weather 天气</div>
+    <div class="tag">morning_brief 早报</div>
+    <div class="tag" style="background:#EEF2FF;border-color:#1E7AFC;font-weight:600">track_water 饮水</div>
+  </div>
+  <div style="text-align:center;margin-top:12px;font-size:12px;color:#8899bb">
+    🎤 "继续这段对话" → 小艺 → query_schedule → 直接打开课表回复
+  </div>
+</div>
+
+<!-- Data flow -->
+<div class="diagram">
+  <h2>💾 数据自适应与离线保障</h2>
+  <div class="three-col">
+    <div class="tc" style="border-color:#93c5fd;background:#dbeafe">
+      <div class="tct">📥 真实数据优先</div>
+      <div class="tcd">Excel课表导入→自动解析<br>成绩单→GPA计算<br>Deeper数据持久化</div>
+    </div>
+    <div class="tc" style="border-color:#fcd34d;background:#fef3c7">
+      <div class="tct">🔄 Mock自动降级</div>
+      <div class="tcd">无导入数据时<br>12场景Mock全量覆盖<br>确保功能完整可用</div>
+    </div>
+    <div class="tc" style="border-color:#6ee7b7;background:#d1fae5">
+      <div class="tct">🚫 完全离线</div>
+      <div class="tcd">端侧引擎+本地数据<br>断网时全功能运行<br>0网络依赖核心链路</div>
+    </div>
+  </div>
+</div>
+
+<!-- Metrics -->
+<div style="display:flex;gap:24px;justify-content:center;font-size:13px;color:#667799;margin-top:8px">
+  <span>28 ArkTS文件</span> <span>|</span>
+  <span>12小艺Intent</span> <span>|</span>
+  <span>5服务卡片</span> <span>|</span>
+  <span>3层记忆</span> <span>|</span>
+  <span>3层降级</span> <span>|</span>
+  <span>离线可用</span>
+</div>
+<p style="color:#94a3b8;font-size:11px;text-align:center;margin-top:6px;margin-bottom:24px">浏览器打开 → 全屏截图 → 提交设计稿</p>
+
+</body>
+</html>

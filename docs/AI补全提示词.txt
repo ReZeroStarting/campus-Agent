@@ -1,0 +1,136 @@
+请帮我完善鸿蒙应用"校园搭子"项目的代码，以下是需要补充的文件和详细说明：
+
+---
+
+## 1. 数据模型 `entry/src/main/ets/model/Types.ets`
+
+定义所有数据类型：Message（id/role/text/timestamp/card）、AgentResponse（text/suggestions/card/scene）、CardData（type/title/content/extra）、Course、Exam、WeatherInfo、GPAData、ShowerInfo、Building、DeliveryInfo、ForumPost、WaterRecord。
+
+---
+
+## 2. HTTP客户端 `entry/src/main/ets/common/HttpClient.ets`
+
+- 使用 @kit.NetworkKit 的 http 模块
+- BASE_URL = 'http://10.0.2.2:3456'（模拟器映射到宿主机 localhost）
+- 封装 get/post/delete 通用方法，5s超时，失败返回null
+- 提供场景API方法：chat、getSchedule、getExams、getShower、getWeather、getGPA、getMap、getClassroom、getCard、getDelivery、getForum、getWater、getMorningBrief
+- 提供对话管理API方法：
+  - listSessions() → GET /api/conversations → 返回{ sessions: [{sessionId, title, messageCount, startTime}] }
+  - newSession() → POST /api/conversations/new → 返回{ sessionId }
+  - deleteSession(id) → DELETE /api/conversations/:id → 返回{ success }
+  - getSession(id) → GET /api/conversations/:id → 返回{ sessionId, messages[] }
+- 单例模式
+
+---
+
+## 3. 本地存储 `entry/src/main/ets/common/MemoryStore.ets`
+
+- 使用 @kit.ArkData 的 preferences
+- 存储键值对：recent_topics（最近20个话题JSON数组）、user_habits（用户习惯JSON对象）、school_name、session_id
+- 方法：init、getRecentTopics、addTopic、getHabits、setHabit、getSchool、setSchool、getSessionId、setSessionId
+- 单例模式，init传入context
+
+---
+
+## 4. Agent桥接层 `entry/src/main/ets/common/CampusAgent.ets`
+
+核心逻辑，这是最重要的文件：
+
+- 内建关键词匹配引擎，12场景对应关键词表：
+  - 洗澡：洗澡/冲凉/澡堂
+  - 课表：什么课/上课/课程
+  - 一卡通：余额/消费/卡里/花了
+  - 天气：下雨/穿什么/冷不冷/带伞
+  - 饮水：喝水/饮水/喝多少/记录喝水
+  - 快递：快递/外卖/取件/取件码/到了吗
+  - 论坛：帖子/失物招领/二手/讲座
+  - 地图：在哪/怎么走/导航
+  - 考试：考试/倒计时/期末
+  - 教室：空教室/自习室/插座
+  - 绩点：GPA/成绩/挂科/加权
+  - 早安：早安/早上好/早报/简报
+
+- sendMessage方法：先本地关键词匹配→命中返回Mock数据→后台异步调HttpClient.chat用LLM增强→LLM成功替换回复→失败保持Mock。未命中直接调LLM兜底。
+
+- 每个场景都有完整的本地Mock数据，确保离线可用。所有回复包含text+suggestions+card三个字段。
+
+- 单例模式
+
+---
+
+## 5. 主对话页面 `entry/src/main/ets/pages/Index.ets`
+
+- 顶部蓝色标题栏：图标🎒+标题"校园搭子"
+- 标题栏右侧两个按钮：
+  - "📋"按钮 → 点击打开右侧滑出的历史对话面板
+  - "✨新对话"按钮 → 点击清空当前对话框，开启全新对话（调用HttpClient.newSession()）
+
+- 右侧滑出历史对话面板（抽屉式）：
+  - 半透明黑色遮罩，点击遮罩关闭
+  - 白色面板从右侧滑入，宽度约300px
+  - 顶部标题"历史对话" + 关闭按钮
+  - 会话列表：每项显示对话标题/第一条消息预览/时间，点击可恢复该会话
+  - 每条会话右侧有删除按钮🗑，点击弹出确认弹窗，确认后调用HttpClient.deleteSession()删除
+  - 列表数据通过HttpClient.listSessions()获取
+  - 使用@State showHistory: boolean 控制面板显隐
+  - 使用@State sessions: Array<{sessionId, title, messageCount, startTime}> 存储会话列表
+
+- 空态显示欢迎页面：大号🎒图标（48px）、标题"校园搭子"（22px加粗深色）、副标题"一句话，校园琐事全安排好"（13px灰色）、6个场景快捷按钮（早安/我要洗澡/明天什么课/找空教室/绩点/查快递）排列成3×2网格
+- 消息列表：用户消息靠右蓝底白字，Agent消息靠左灰底黑字+头像🎒，每条Agent消息可附带卡片（蓝框白底显示title和content）
+- 底部输入栏：输入框+发送按钮
+- @State管理messages列表、inputText、isLoading、showHistory、sessions、currentSessionId
+- 发送消息时附带sessionId参数
+- 从@ohos.router导入router，从../common/CampusAgent和../common/HttpClient导入
+
+---
+
+## 6. 设置页 `entry/src/main/ets/pages/Settings.ets`
+
+- 顶栏：返回按钮+标题"设置"
+- 学校名称输入框（绑定MemoryStore）
+- 课表导入状态/成绩导入状态显示
+- API连接测试按钮，显示连接状态
+- 从../common/MemoryStore和../common/HttpClient导入
+
+---
+
+## 7. 关于页 `entry/src/main/ets/pages/Profile.ets`
+
+- 顶栏：返回按钮+标题"我的"
+- 显示图标🎒+版本号v1.0.0+介绍文字
+- 6个能力指标网格：<1ms意图识别、12场景、3层记忆、3层降级、RAG知识库、数据导入
+
+---
+
+## 8. 小艺意图处理 `entry/src/main/ets/xiaoyi/XiaoyiIntentAbility.ets`
+
+- 继承ServiceExtensionAbility
+- 12个intent action映射到场景
+- 从../common/CampusAgent导入
+
+---
+
+## 9. 5张服务卡片 `entry/src/main/ets/widget/pages/`
+
+每张卡片用@Entry+@Component定义，数据通过@LocalStorageProp接收：
+
+- MorningBriefCard.ets：🌅智能早报 2×2，显示天气+课表+考试+快递摘要
+- ScheduleCard.ets：📅今日课表 2×2/2×4，列出课程时间地点
+- ExamCard.ets：📝考试倒计时 1×2/2×2，大字号显示剩余天数，3天内红色
+- BalanceCard.ets：💳一卡通余额 1×2，显示余额金额，低于20元红色
+- PackageCard.ets：📦快递提醒 1×2/2×2，显示取件码和取件点
+
+---
+
+## 10. 首页样式欢迎页需要更新
+
+主页面空状态欢迎页需要更美观：大号🎒图标（48px）、标题"校园搭子"（22px加粗深色）、副标题"一句话，校园琐事全安排好"（13px灰色）、6个场景快捷按钮排列成3×2网格（圆角胶囊按钮蓝色系）。
+
+---
+
+注意事项：
+- 所有文件使用HarmonyOS ArkTS语法
+- 导入路径使用相对路径（如'../model/Types'）
+- 单例类使用静态getInstance方法
+- 已有正确的module.json5、form_config.json、main_pages.json配置文件，只改代码不碰配置
+- 不要修改build-profile.json5和app.json5这类构建配置

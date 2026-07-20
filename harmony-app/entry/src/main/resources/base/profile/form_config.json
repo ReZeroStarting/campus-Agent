@@ -1,0 +1,9 @@
+{
+  "forms": [
+    { "name": "MorningBriefCard", "description": "智能早报卡片", "src": "ets/widget/pages/MorningBriefCard.ets", "uiSyntax": "arkts", "formConfigAbility": "ability://EntryAbility", "isDefault": false, "updateDuration": 1, "scheduledUpdateTime": "07:00", "defaultDimension": "2*2", "supportDimensions": ["2*2"], "colorMode": "auto", "updateEnabled": true, "metadata": [] },
+    { "name": "ScheduleCard", "description": "今日课表卡片", "src": "ets/widget/pages/ScheduleCard.ets", "uiSyntax": "arkts", "formConfigAbility": "ability://EntryAbility", "isDefault": false, "updateDuration": 1, "scheduledUpdateTime": "07:30", "defaultDimension": "2*2", "supportDimensions": ["2*2", "2*4"], "colorMode": "auto", "updateEnabled": true, "metadata": [] },
+    { "name": "ExamCard", "description": "考试倒计时卡片", "src": "ets/widget/pages/ExamCard.ets", "uiSyntax": "arkts", "formConfigAbility": "ability://EntryAbility", "isDefault": false, "updateDuration": 1, "scheduledUpdateTime": "08:00", "defaultDimension": "1*2", "supportDimensions": ["1*2", "2*2"], "colorMode": "auto", "updateEnabled": true, "metadata": [] },
+    { "name": "BalanceCard", "description": "一卡通余额卡片", "src": "ets/widget/pages/BalanceCard.ets", "uiSyntax": "arkts", "formConfigAbility": "ability://EntryAbility", "isDefault": false, "updateDuration": 30, "defaultDimension": "1*2", "supportDimensions": ["1*2"], "colorMode": "auto", "updateEnabled": true, "metadata": [] },
+    { "name": "PackageCard", "description": "快递提醒卡片", "src": "ets/widget/pages/PackageCard.ets", "uiSyntax": "arkts", "formConfigAbility": "ability://EntryAbility", "isDefault": false, "updateDuration": 1, "defaultDimension": "1*2", "supportDimensions": ["1*2", "2*2"], "colorMode": "auto", "updateEnabled": true, "metadata": [] }
+  ]
+}

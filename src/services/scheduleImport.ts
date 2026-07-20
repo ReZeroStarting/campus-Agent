@@ -5,10 +5,20 @@
 
 import * as XLSX from 'xlsx';
 import type { Course } from '../models/index.js';
+import { loadSchedule, saveSchedule } from './storage.js';
 
 // ---- 存储 ----
 
 let importedSchedule: Course[] | null = null;
+
+/** 启动时自动加载持久化数据 */
+export function initScheduleImport(): void {
+  const saved = loadSchedule();
+  if (saved && saved.length > 0) {
+    importedSchedule = saved;
+    console.log(`[ScheduleImport] 已加载持久化课表: ${saved.length} 门课程`);
+  }
+}
 
 /** 获取当前课表（优先返回导入的，否则返回模拟数据） */
 export function getImportedSchedule(): Course[] | null {
@@ -17,18 +27,19 @@ export function getImportedSchedule(): Course[] | null {
 
 /** 设置导入的课表 */
 export function setImportedSchedule(courses: Course[]): void {
-  // 为没有 courseId 的课程自动生成 ID
   importedSchedule = courses.map((c, i) => ({
     ...c,
     courseId: c.courseId || `IMP_${String(i + 1).padStart(3, '0')}`,
     weeks: c.weeks?.length ? c.weeks : Array.from({ length: 16 }, (_, j) => j + 1),
   }));
-  console.log(`[ScheduleImport] 已导入 ${importedSchedule.length} 门课程`);
+  saveSchedule(importedSchedule); // 自动持久化
+  console.log(`[ScheduleImport] 已导入并保存 ${importedSchedule.length} 门课程`);
 }
 
 /** 清空导入的课表，恢复模拟数据 */
 export function clearImportedSchedule(): void {
   importedSchedule = null;
+  saveSchedule([]); // 清空持久化
 }
 
 /** 获取指定日期的课程（优先导入的课表） */

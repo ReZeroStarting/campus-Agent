@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "module_desc_test", "value": "校园搭子测试模块" },
+    { "name": "TestAbility_desc", "value": "端侧引擎测试入口" },
+    { "name": "TestAbility_label", "value": "测试" }
+  ]
+}

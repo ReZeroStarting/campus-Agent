@@ -1,0 +1,12 @@
+{
+  "string": [
+    { "name": "app_name", "value": "校园搭子" },
+    { "name": "module_desc", "value": "校园搭子主模块" },
+    { "name": "EntryAbility_desc", "value": "校园搭子主入口" },
+    { "name": "EntryAbility_label", "value": "校园搭子" },
+    { "name": "XiaoyiIntentAbility_desc", "value": "小艺意图处理服务" },
+    { "name": "internet_reason", "value": "需要网络连接以访问校园数据和AI服务" },
+    { "name": "network_reason", "value": "需要检测网络状态以优化数据加载" },
+    { "name": "notification_reason", "value": "需要通知权限以发送考试提醒和消息推送" }
+  ]
+}

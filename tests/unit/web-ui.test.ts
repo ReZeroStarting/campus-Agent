@@ -16,7 +16,7 @@ describe('Web Chat UI', () => {
   it('style.css has mobile-first layout', () => {
     const css = readFileSync(resolve(__dirname, '../../public/style.css'), 'utf-8');
     expect(css).toContain('.msg');
-    expect(css).toContain('.suggestions');
+    expect(css).toContain('#suggestions');
     expect(css).toContain('.welcome');
     expect(css).toContain('max-width:560px');
   });
