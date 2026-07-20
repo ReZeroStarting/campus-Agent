@@ -5,8 +5,8 @@
 // ============================================================
 
 import { recognizeIntent } from './core/intent/engine.js';
-import { resolveAnaphora } from './core/anaphora/engine.js';
-import { recordMessage, updateSessionContext, getSession, resetSession, learnPattern, getRecentConversations, resumeSession as engineResumeSession } from './core/memory/engine.js';
+import { makeAnaphoraStage, stageRecognizeIntent, composePipeline, type PipelineContext } from './core/pipeline/middleware.js';
+import { recordMessage, getSession, resetSession, getRecentConversations, resumeSession as engineResumeSession } from './core/memory/engine.js';
 import { listSessions, archiveSession } from './core/memory/history.js';
 import { generateResponse } from './core/llm/generator.js';
 import { isLlmAvailable } from './core/llm/client.js';
@@ -70,31 +70,27 @@ export async function processMessage(text: string): Promise<AgentResponse> {
     return shortcut;
   }
 
-  // ── 阶段 2: 指代消解（core/anaphora/engine.ts 自包含规则）──
-  let anaphoraResult = resolveAnaphora(trimmed, session);
-  if (!anaphoraResult) {
-    // 引擎标记为委托（吃/穿/睡/取快递/洗完了）→ 由 agent 层处理
-    anaphoraResult = await handleDelegatedAnaphora(trimmed);
-  }
-  if (anaphoraResult) {
-    recordMessage('agent', anaphoraResult.text);
-    timed.finish('anaphora_resolved');
-    return anaphoraResult;
+  // ── 阶段 2+3: 管道执行（指代消解 → 意图识别）──
+  const pipelineCtx = await composePipeline(
+    { text: trimmed, session, didLLMCall: false, traceId: timed.traceId },
+    [makeAnaphoraStage(handleDelegatedAnaphora), stageRecognizeIntent],
+  );
+
+  // 管道阶段短路：指代消解命中
+  if (pipelineCtx.response) {
+    timed.finish('pipeline_anaphora_hit');
+    return pipelineCtx.response;
   }
 
   // ── 阶段 3: 对话管理命令 ──
-  const convResult = handleConversationCommand(trimmed);
+  const convResult = await handleConversationCommand(trimmed);
   if (convResult) {
     timed.finish('conversation_command');
     return convResult;
   }
 
-  // ── 阶段 4: 意图识别 ──
-  const intent = recognizeIntent(text);
-  if (intent.category !== 'unknown') {
-    updateSessionContext({ lastIntent: intent.category, lastTopic: text });
-    learnPattern(intent.category, new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
-  }
+  // ── 阶段 4: 意图识别结果（管道已计算）──
+  const intent = pipelineCtx.intent || recognizeIntent(text);
 
   // ── 阶段 5: 场景路由 ──
   let didLLMCall = false;
@@ -190,7 +186,7 @@ async function handleDelegatedAnaphora(text: string): Promise<AgentResponse | nu
 }
 
 /** 对话管理命令 */
-function handleConversationCommand(text: string): AgentResponse | null {
+async function handleConversationCommand(text: string): Promise<AgentResponse | null> {
   if (text === '新对话' || text === '开始新对话' || text === '清空对话' || text === '重置对话' || text === '重新开始') {
     resetSession();
     return { text: '✨ 已开启新对话！之前的历史已自动保存，输入「历史」可查看。', suggestions: ['查课表', '查一卡通', '我要洗澡'] };
@@ -225,7 +221,7 @@ function handleConversationCommand(text: string): AgentResponse | null {
   }
 
   if (text.includes('早安') || text.includes('早上好') || text.includes('日报') || text.includes('今天有什么') || text.includes('今日简报')) {
-    return handleMorningBrief();
+    return await handleMorningBrief();
   }
 
   return null;
