@@ -1,0 +1,17 @@
+{
+  "campusRules": {
+    "locations": {
+      "教三": { "name": "第三教学楼", "commuteMinutes": 8 },
+      "教二": { "name": "第二教学楼", "commuteMinutes": 10 },
+      "教五": { "name": "第五教学楼", "commuteMinutes": 12 },
+      "图书馆": { "name": "图书馆", "commuteMinutes": 6 },
+      "体育馆": { "name": "体育馆", "commuteMinutes": 15 }
+    },
+    "canteenHours": {
+      "一食堂": { "open": "06:30", "close": "21:00" },
+      "二食堂": { "open": "06:30", "close": "22:00", "restDay": 7 },
+      "三食堂": { "open": "07:00", "close": "20:30" }
+    },
+    "showerPrice": 2.5
+  }
+}

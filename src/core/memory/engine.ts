@@ -14,9 +14,11 @@ import { archiveSession, listSessions, loadAllSessions, restoreSession, type Sav
 import { readJson, writeJson } from '../../services/storage.js';
 import { logger } from '../../services/logger.js';
 
-// ---- 长期知识（校园规则，相对固定） ----
+// ---- 长期知识（校园规则） ----
+// 优先从 data/campus-config.json 加载，失败则用内置默认值
+// 换学校只需替换 JSON 文件，无需改代码
 
-const longTermKnowledge: LongTermKnowledge = {
+const DEFAULT_LONG_TERM: LongTermKnowledge = {
   campusRules: {
     locations: {
       '教三': { name: '第三教学楼', commuteMinutes: 8 },
@@ -26,13 +28,27 @@ const longTermKnowledge: LongTermKnowledge = {
       '体育馆': { name: '体育馆', commuteMinutes: 15 },
     },
     canteenHours: {
-      '一食堂': { open: '06:30', close: '21:00', restDay: undefined },
-      '二食堂': { open: '06:30', close: '22:00', restDay: 7 }, // 周日休息
-      '三食堂': { open: '07:00', close: '20:30', restDay: undefined },
+      '一食堂': { open: '06:30', close: '21:00' },
+      '二食堂': { open: '06:30', close: '22:00', restDay: 7 },
+      '三食堂': { open: '07:00', close: '20:30' },
     },
-    showerPrice: 2.5, // 单次洗澡均价
+    showerPrice: 2.5,
   },
 };
+
+function loadLongTermKnowledge(): LongTermKnowledge {
+  try {
+    const loaded = readJson<LongTermKnowledge>('campus-config.json');
+    if (loaded?.campusRules?.locations && loaded?.campusRules?.canteenHours && typeof loaded.campusRules.showerPrice === 'number') {
+      logger.info('Memory', 'campus_config_loaded_from_file');
+      return loaded;
+    }
+  } catch { /* fall through to defaults */ }
+  logger.info('Memory', 'campus_config_using_defaults');
+  return { ...DEFAULT_LONG_TERM };
+}
+
+const longTermKnowledge: LongTermKnowledge = loadLongTermKnowledge();
 
 // ---- 中期记忆（用户习惯，本地存储，跨会话） ----
 
