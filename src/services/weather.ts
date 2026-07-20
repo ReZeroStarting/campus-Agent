@@ -2,7 +2,7 @@
 // 天气服务适配层 (v2 — 和风天气 API + 模拟 fallback)
 // ============================================================
 
-import { getMockWeather } from '../data/mock.js';
+import { getMockWeather } from '../data/mocks/index.js';
 import type { WeatherInfo } from '../models/index.js';
 
 /** 和风天气 API 配置 */

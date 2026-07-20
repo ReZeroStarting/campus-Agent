@@ -11,7 +11,7 @@ import {
   getDeliveryOrders,
   getActiveOrders,
   markOrderPicked,
-} from '../data/mock.js';
+} from '../data/mocks/index.js';
 import { fetchAllCourses } from '../services/scheduleData.js';
 import type {
   AgentResponse,

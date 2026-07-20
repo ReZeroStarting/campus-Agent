@@ -7,7 +7,7 @@ import {
   findBuilding,
   searchBuildings,
   findBuildingsByService,
-} from '../data/mock.js';
+} from '../data/mocks/index.js';
 import type { CampusBuilding } from '../models/index.js';
 
 const BUILDING_NAME_ALIAS: Record<string, string> = {

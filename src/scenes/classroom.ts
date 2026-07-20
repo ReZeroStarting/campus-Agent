@@ -2,7 +2,7 @@
 // 空闲教室场景
 // ============================================================
 
-import { getClassrooms, getFreeClassrooms } from '../data/mock.js';
+import { getClassrooms, getFreeClassrooms } from '../data/mocks/index.js';
 import type { Classroom } from '../models/index.js';
 
 export function handleClassroomQuery(text: string): { text: string; suggestions: string[] } {

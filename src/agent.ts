@@ -5,6 +5,7 @@
 // ============================================================
 
 import { recognizeIntent } from './core/intent/engine.js';
+import { resolveAnaphora } from './core/anaphora/engine.js';
 import { recordMessage, updateSessionContext, getSession, resetSession, learnPattern, getRecentConversations, resumeSession as engineResumeSession } from './core/memory/engine.js';
 import { listSessions, archiveSession } from './core/memory/history.js';
 import { generateResponse } from './core/llm/generator.js';
@@ -35,7 +36,7 @@ import {
   handlePickupComplete,
 } from './scenes/delivery.js';
 import { handleForumQuery } from './scenes/forum.js';
-import { handleMapQuery, setCurrentLocation } from './scenes/map.js';
+import { handleMapQuery } from './scenes/map.js';
 import { handleMorningBrief } from './scenes/morning-brief.js';
 import { handleExamQuery } from './scenes/exam.js';
 import { handleClassroomQuery } from './scenes/classroom.js';
@@ -48,7 +49,6 @@ import type { AgentResponse, TriggerContext, Course, WeatherInfo } from './model
 // ── 模拟数据 ──
 import {
   getCardState, getShowerState, getWaterIntake, addWater,
-  getActivePackages, getPickupPoints, findBuilding,
 } from './data/mocks/index.js';
 
 // ============================================================
@@ -70,8 +70,12 @@ export async function processMessage(text: string): Promise<AgentResponse> {
     return shortcut;
   }
 
-  // ── 阶段 2: 指代消解（已独立化为 core/anaphora/engine.ts）──
-  const anaphoraResult = await handleAnaphora(trimmed, session);
+  // ── 阶段 2: 指代消解（core/anaphora/engine.ts 自包含规则）──
+  let anaphoraResult = resolveAnaphora(trimmed, session);
+  if (!anaphoraResult) {
+    // 引擎标记为委托（吃/穿/睡/取快递/洗完了）→ 由 agent 层处理
+    anaphoraResult = await handleDelegatedAnaphora(trimmed);
+  }
   if (anaphoraResult) {
     recordMessage('agent', anaphoraResult.text);
     timed.finish('anaphora_resolved');
@@ -167,84 +171,21 @@ function handleShortcut(text: string): AgentResponse | null {
   return null;
 }
 
-/** 指代消解 */
-async function handleAnaphora(text: string, session: ReturnType<typeof getSession>): Promise<AgentResponse | null> {
-  const lastIntent = session.context.lastIntent;
-
-  // 「够不够？」
-  if ((text.includes('够不够') || text.includes('够吗')) && lastIntent) {
-    if (lastIntent === 'shower') {
-      const state = getShowerState();
-      const count = Math.floor(state.balance / state.pricePerShower);
-      return { text: `够的，余额 ${state.balance.toFixed(1)} 元，大概能洗 ${count} 次。`, suggestions: ['现在去洗', '先充值'] };
-    }
-    if (lastIntent === 'card') {
-      const card = getCardState();
-      const evalStr = card.balance > 30 ? '很充裕' : card.balance > 15 ? '正常' : '偏低';
-      return { text: `一卡通余额 ${card.balance.toFixed(1)} 元，${evalStr}。`, suggestions: ['充值', '查消费'] };
-    }
-  }
-
-  // 「几点去？」
-  if ((text.includes('几点') && text.includes('去')) || text.includes('什么时候去')) {
-    if (lastIntent === 'shower') {
-      const habits = getUserHabits();
-      const state = getShowerState();
-      const response = `你习惯 ${habits.showerTime} 左右去。现在澡堂${state.crowdLevel}，${state.crowdLevel === '空闲' ? '随时可以去。' : state.crowdLevel === '拥挤' ? '建议等半小时。' : '可以去，不挤。'}`;
-      return { text: response };
-    }
-  }
-
-  // 「吃什么」
-  if (text.includes('吃什么') || text.includes('吃啥') || text.includes('去食堂')) {
-    return handleMealQuery();
-  }
-
-  // 「穿什么」
-  if (text.includes('穿什么') || text.includes('穿啥') || text.includes('穿多少')) {
-    return await handleClothingQuery();
-  }
-
-  // 「几点睡」
-  if (text.includes('几点睡') || text.includes('该睡了') || text.includes('睡觉')) {
-    return handleSleepQuery();
-  }
-
-  // 「取完了」
-  if (text.includes('取完了') || text.includes('拿完了') || text.includes('拿到了') || text.includes('取到了') || text.includes('拿回来了')) {
-    return handlePickupComplete(text);
-  }
-
-  // 「取件码」
-  if (text.includes('取件码') || text.includes('货架号') || text.includes('哪个柜')) {
-    const packages = getActivePackages().filter(p => p.status === '已到站');
-    if (packages.length === 0) {
-      return { text: '没有待取的快递。', suggestions: ['查快递', '查外卖'] };
-    }
-    const points = getPickupPoints();
-    const lines = packages.map(p => {
-      const point = points.find(pp => pp.id === p.pickupPoint);
-      return `${p.carrier} ${p.description || ''}: ${p.pickupCode}（${point?.name || p.pickupPoint}）`;
-    });
-    return { text: '📦 取件码：\n' + lines.join('\n'), suggestions: ['帮我规划路线', '查外卖'] };
-  }
-
-  // 「我在XX」
-  if (text.startsWith('我在') || text.startsWith('我现在在')) {
-    const locText = text.replace(/^(我在|我现在在)/, '').trim();
-    if (!locText) return null;
-    const bld = findBuilding(locText);
-    if (bld && setCurrentLocation(bld.id)) {
-      return { text: `📍 已记录位置：${bld.name}${bld.description ? '（' + bld.description + '）' : ''}`, suggestions: ['附近有什么', '图书馆怎么走', '到二食堂怎么走'] };
-    }
-  }
-
-  // 洗完了 - 需要异步处理
-  if (text.includes('洗完了') || text.includes('洗好') || text.includes('洗过了')) {
+/** 指代消解 — 委托模式（引擎返回 null 的规则，由 agent 层处理） */
+async function handleDelegatedAnaphora(text: string): Promise<AgentResponse | null> {
+  // 吃什么 / 吃啥 / 去食堂
+  if (/吃什么|吃啥|去食堂/.test(text)) return handleMealQuery();
+  // 穿什么 / 穿啥 / 穿多少
+  if (/穿什么|穿啥|穿多少/.test(text)) return await handleClothingQuery();
+  // 几点睡 / 该睡了 / 睡觉
+  if (/几点睡|该睡了|睡觉/.test(text)) return handleSleepQuery();
+  // 取完了 / 拿到了 / 取到了 / 拿回来了
+  if (/取完了|拿完了|拿到了|取到了|拿回来了/.test(text)) return handlePickupComplete(text);
+  // 洗完了 / 洗好了 / 洗过了（需要异步）
+  if (/洗完了|洗好了|洗过了/.test(text)) {
     const result = await handleShowerDone();
     return result.response;
   }
-
   return null;
 }
 

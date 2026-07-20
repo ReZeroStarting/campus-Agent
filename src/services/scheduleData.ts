@@ -3,7 +3,7 @@
 // 支持导入课表（ICS/Excel）替代模拟数据
 // ============================================================
 
-import { getMockSchedule, getScheduleForDate } from '../data/mock.js';
+import { getMockSchedule, getScheduleForDate } from '../data/mocks/index.js';
 import { getImportedSchedule, getCoursesForDate } from './scheduleImport.js';
 import type { Course } from '../models/index.js';
 

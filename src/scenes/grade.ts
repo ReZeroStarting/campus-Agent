@@ -2,7 +2,7 @@
 // 绩点计算器场景
 // ============================================================
 
-import { getCourseGrades, getGpa } from '../data/mock.js';
+import { getCourseGrades, getGpa } from '../data/mocks/index.js';
 
 export function handleGradeQuery(text: string): { text: string; suggestions: string[] } {
   // "够不够3.5" / "能上3.8吗"

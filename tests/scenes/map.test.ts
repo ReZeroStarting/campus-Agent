@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { handleMapQuery, setCurrentLocation, getCurrentLocation, clearCurrentLocation } from '../../src/scenes/map.js';
-import { findBuilding } from '../../src/data/mock.js';
+import { findBuilding } from '../../src/data/mocks/index.js';
 
 describe('Scene: 校园地图', () => {
   beforeEach(() => clearCurrentLocation());

@@ -4,7 +4,7 @@
 // ============================================================
 
 import { orchestrate } from '../core/orchestrator/engine.js';
-import { getCardState } from '../data/mock.js';
+import { getCardState } from '../data/mocks/index.js';
 import { fetchWeather } from '../services/weather.js';
 import { fetchAllCourses } from '../services/scheduleData.js';
 import { getUserHabits, getLongTermKnowledge } from '../core/memory/engine.js';

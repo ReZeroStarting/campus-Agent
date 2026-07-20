@@ -22,7 +22,7 @@ import {
   getCampusBuildings, getExams, getExamCountdown, getCourseGrades, getGpa,
   getFreeClassrooms, getClassrooms, getExtractedInfos, searchBuildings, getHotPosts,
   findBuildingsByService,
-} from '../data/mock.js';
+} from '../data/mocks/index.js';
 import { getUserHabits } from '../core/memory/engine.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3456;

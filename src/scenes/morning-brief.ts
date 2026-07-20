@@ -4,10 +4,10 @@
 // ============================================================
 
 import { fetchCoursesForDate } from '../services/scheduleData.js';
-import { getWeatherToday } from '../data/mock.js';
-import { getCardState } from '../data/mock.js';
-import { getActivePackages, getActiveOrders, getUpcomingExams, getExamCountdown } from '../data/mock.js';
-import { getActiveEvents } from '../data/mock.js';
+import { getWeatherToday } from '../data/mocks/index.js';
+import { getCardState } from '../data/mocks/index.js';
+import { getActivePackages, getActiveOrders, getUpcomingExams, getExamCountdown } from '../data/mocks/index.js';
+import { getActiveEvents } from '../data/mocks/index.js';
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 

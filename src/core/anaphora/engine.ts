@@ -32,23 +32,10 @@ function matchIntent(requires: IntentCategory | IntentCategory[] | undefined, la
 }
 
 // ── 规则表 ──
+// 注：系统命令（重置/喝水/洗完了）由 agent.ts handleShortcut 处理
+// 委托类（吃/穿/睡/取快递）由 agent.ts handleDelegatedAnaphora 处理
 
 const RULES: AnaphoraRule[] = [
-  {
-    name: 'shower_done',
-    pattern: /洗完了|洗好了|洗过了/,
-    handler: () => null, // 由外部 handleShowerDoneFlow 处理
-  },
-  {
-    name: 'water_record',
-    pattern: /(?:喝水|喝了|记录)\s*\d+\s*(?:ml|毫升)/,
-    handler: () => null, // 由 agent 直接处理
-  },
-  {
-    name: 'reset',
-    pattern: /^(重置|reset)$/,
-    handler: () => ({ text: '会话已重置，有什么可以帮你的？' }),
-  },
   {
     name: 'enough_or_not',
     pattern: (text) => text.includes('够不够') || text.includes('够吗'),
@@ -80,26 +67,6 @@ const RULES: AnaphoraRule[] = [
       }
       return null;
     },
-  },
-  {
-    name: 'what_to_eat',
-    pattern: (text) => text.includes('吃什么') || text.includes('吃啥') || text.includes('去食堂'),
-    handler: () => null, // 由 agent 的 handleMealQuery 处理
-  },
-  {
-    name: 'what_to_wear',
-    pattern: (text) => text.includes('穿什么') || text.includes('穿啥') || text.includes('穿多少'),
-    handler: () => null, // 由 agent 的 handleClothingQuery 处理
-  },
-  {
-    name: 'sleep_advice',
-    pattern: (text) => text.includes('几点睡') || text.includes('该睡了') || text.includes('睡觉'),
-    handler: () => null, // 由 agent 的 handleSleepQuery 处理
-  },
-  {
-    name: 'pickup_done',
-    pattern: /取完了|拿完了|拿到了|取到了|拿回来了/,
-    handler: () => null, // 由 agent 通过 handlePickupComplete 处理
   },
   {
     name: 'pickup_code',

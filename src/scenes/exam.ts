@@ -2,7 +2,7 @@
 // 考试倒计时场景
 // ============================================================
 
-import { getExams, getExamCountdown, getUpcomingExams } from '../data/mock.js';
+import { getExams, getExamCountdown, getUpcomingExams } from '../data/mocks/index.js';
 
 export function handleExamQuery(text: string): { text: string; suggestions: string[] } {
   // 最近考试

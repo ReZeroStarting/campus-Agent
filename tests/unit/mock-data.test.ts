@@ -8,7 +8,7 @@ import {
   getCampusBuildings, findBuilding, findBuildingsByService,
   getExams, getExamCountdown, getClassrooms, getFreeClassrooms,
   getCourseGrades, getGpa,
-} from '../../src/data/mock.js';
+} from '../../src/data/mocks/index.js';
 
 describe('Mock Data', () => {
   describe('课表', () => {

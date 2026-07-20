@@ -4,7 +4,7 @@
 // ============================================================
 
 import { orchestrate } from '../core/orchestrator/engine.js';
-import { getCardState, deductCardBalance } from '../data/mock.js';
+import { getCardState, deductCardBalance } from '../data/mocks/index.js';
 import { getUserHabits } from '../core/memory/engine.js';
 import type { AgentResponse, OrchestrationTask, CardState, CardTransaction } from '../models/index.js';
 

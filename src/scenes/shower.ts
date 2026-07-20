@@ -4,7 +4,7 @@
 // ============================================================
 
 import { orchestrate } from '../core/orchestrator/engine.js';
-import { getShowerState, deductShowerBalance } from '../data/mock.js';
+import { getShowerState, deductShowerBalance } from '../data/mocks/index.js';
 import { getUserHabits, getLongTermKnowledge } from '../core/memory/engine.js';
 import type { AgentResponse, OrchestrationTask, ShowerState } from '../models/index.js';
 

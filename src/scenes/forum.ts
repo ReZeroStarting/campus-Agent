@@ -9,7 +9,7 @@ import {
   getExtractedInfos,
   getActiveEvents,
   searchExtractedInfos,
-} from '../data/mock.js';
+} from '../data/mocks/index.js';
 import { FORUM_SECTION_NAMES, type ForumSection } from '../models/index.js';
 
 const SECTION_KEYWORDS: Record<string, ForumSection> = {
