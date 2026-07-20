@@ -35,7 +35,7 @@ import {
   handleRoutePlan,
   handlePickupComplete,
 } from './scenes/delivery.js';
-import { handleForumQuery } from './scenes/forum.js';
+import { handleForumQuery, autoSummarizeForum } from './scenes/forum.js';
 import { handleMapQuery } from './scenes/map.js';
 import { handleMorningBrief } from './scenes/morning-brief.js';
 import { handleExamQuery } from './scenes/exam.js';
@@ -222,6 +222,10 @@ async function handleConversationCommand(text: string): Promise<AgentResponse | 
 
   if (text.includes('早安') || text.includes('早上好') || text.includes('日报') || text.includes('今天有什么') || text.includes('今日简报')) {
     return await handleMorningBrief();
+
+  if (text.includes('论坛摘要') || text.includes('总结论坛') || text.includes('论坛速览')) {
+    return await autoSummarizeForum();
+  }
   }
 
   return null;

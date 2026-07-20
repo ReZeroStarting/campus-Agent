@@ -1,27 +1,140 @@
 // ============================================================
-// RAG 知识库 —— 文档加载 + 分块 + 检索
-// 使用字符 Bigram 相似度（中文分词效果好，零依赖）
+// RAG 知识库 V2 — TF-IDF 检索 + 倒排索引
+// 从 V1 的 Bigram Jaccard 升级为 TF-IDF 余弦相似度
 // ============================================================
 
-import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { join, resolve } from 'path';
 
 /** 一个知识片段 */
 export interface KnowledgeChunk {
   id: string;
-  source: string;       // 来源文档名
-  title: string;         // 章节标题
-  content: string;       // 文本内容
-  bigrams: Set<string>;  // 预计算的特征
+  source: string;
+  title: string;
+  content: string;
+  /** TF-IDF 向量（token → weight） */
+  vector: Map<string, number>;
 }
+
+// ── 配置 ──
+
+interface RAGConfig {
+  /** 知识库目录路径，支持绝对路径或相对路径 */
+  knowledgeDir: string;
+  /** 默认检索返回数量 */
+  defaultTopK: number;
+}
+
+let config: RAGConfig = {
+  knowledgeDir: '',
+  defaultTopK: 5,
+};
+
+/** 获取/设置 RAG 配置 */
+export function getRAGConfig(): Readonly<RAGConfig> {
+  return config;
+}
+
+export function setRAGConfig(patch: Partial<RAGConfig>): void {
+  config = { ...config, ...patch };
+}
+
+// ── 分词 ──
+
+/**
+ * 混合分词：2-gram + 单字（中文友好，零依赖）
+ * "转专业条件" → ["转专","专业","业条","条件","转","专","业","条","件"]
+ */
+function tokenize(text: string): string[] {
+  const cleaned = text.replace(/\s+/g, '');
+  const tokens: string[] = [];
+
+  // 2-gram
+  for (let i = 0; i < cleaned.length - 1; i++) {
+    tokens.push(cleaned.substring(i, i + 2));
+  }
+
+  // 单字（对短查询有价值）
+  for (const ch of cleaned) {
+    tokens.push(ch);
+  }
+
+  return tokens;
+}
+
+// ── TF-IDF 计算 ──
+
+function computeTF(tokens: string[]): Map<string, number> {
+  const tf = new Map<string, number>();
+  for (const t of tokens) {
+    tf.set(t, (tf.get(t) || 0) + 1);
+  }
+  const total = tokens.length;
+  for (const [term, count] of tf) {
+    tf.set(term, count / total);
+  }
+  return tf;
+}
+
+function computeIDF(chunks: KnowledgeChunk[]): Map<string, number> {
+  const df = new Map<string, number>();
+  const N = chunks.length;
+
+  for (const chunk of chunks) {
+    const seen = new Set<string>();
+    for (const term of chunk.vector.keys()) {
+      if (!seen.has(term)) {
+        df.set(term, (df.get(term) || 0) + 1);
+        seen.add(term);
+      }
+    }
+  }
+
+  const idf = new Map<string, number>();
+  for (const [term, count] of df) {
+    idf.set(term, Math.log((N + 1) / (count + 1)) + 1); // smooth IDF
+  }
+  return idf;
+}
+
+/** 为所有 chunk 计算 TF-IDF 向量 */
+function applyIDF(chunks: KnowledgeChunk[]): void {
+  const idf = computeIDF(chunks);
+  for (const chunk of chunks) {
+    for (const [term, tf] of chunk.vector) {
+      chunk.vector.set(term, tf * (idf.get(term) || 0));
+    }
+  }
+}
+
+/** 向量余弦相似度 */
+function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (const [term, weightA] of a) {
+    dotProduct += weightA * (b.get(term) || 0);
+    normA += weightA * weightA;
+  }
+
+  for (const weightB of b.values()) {
+    normB += weightB * weightB;
+  }
+
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// ── 知识库加载 ──
 
 let knowledgeBase: KnowledgeChunk[] | null = null;
 
-/**
- * 加载 knowledge/ 目录下的所有 Markdown 文档
- */
-function getKnowledgeDir(): string {
-  // 兼容不同运行环境（tsx / node / vitest）
+function resolveKnowledgeDir(): string {
+  if (config.knowledgeDir && existsSync(config.knowledgeDir)) {
+    return config.knowledgeDir;
+  }
+
   const candidates = [
     join(import.meta.dirname || __dirname, '../../data/knowledge'),
     join(process.cwd(), 'src/data/knowledge'),
@@ -29,45 +142,16 @@ function getKnowledgeDir(): string {
   ];
   for (const dir of candidates) {
     try {
-      if (readdirSync(dir).length > 0) return dir;
+      if (existsSync(dir) && readdirSync(dir).length > 0) return dir;
     } catch { /* try next */ }
   }
   throw new Error('找不到 knowledge 目录');
 }
 
-/**
- * 字符 Bigram 提取（中文友好）
- * "转专业条件" → ["转专","专业","业条","条件"]
- */
-function extractBigrams(text: string): string[] {
-  const cleaned = text.replace(/\s+/g, '');
-  const result: string[] = [];
-  for (let i = 0; i < cleaned.length - 1; i++) {
-    result.push(cleaned.substring(i, i + 2));
-  }
-  return result;
-}
-
-/**
- * Bigram Jaccard 相似度
- * score = |A ∩ B| / |A ∪ B|
- */
-function bigramSimilarity(a: Set<string>, b: Set<string>): number {
-  if (a.size === 0 || b.size === 0) return 0;
-  let intersection = 0;
-  for (const item of a) {
-    if (b.has(item)) intersection++;
-  }
-  return intersection / (a.size + b.size - intersection);
-}
-
-/**
- * 加载并分块所有知识库文档
- */
 export function loadKnowledgeBase(): KnowledgeChunk[] {
   if (knowledgeBase) return knowledgeBase;
 
-  const dir = getKnowledgeDir();
+  const dir = resolveKnowledgeDir();
   const files = readdirSync(dir).filter(f => f.endsWith('.md'));
   const chunks: KnowledgeChunk[] = [];
 
@@ -75,86 +159,97 @@ export function loadKnowledgeBase(): KnowledgeChunk[] {
     const content = readFileSync(join(dir, file), 'utf-8');
     const fileName = file.replace(/\.md$/, '');
 
-    // 按 ## 标题分块
     const sections = content.split(/(?=^## )/m);
 
     for (const section of sections) {
       const lines = section.trim().split('\n');
       const heading = lines[0].replace(/^## /, '').trim();
       const text = lines.slice(1).join('\n').trim();
+      if (!text || text.length < 10) continue;
 
-      if (!text || text.length < 10) continue; // 跳过空块
-
-      // 如果块太大（超过 500 字符），按段落再分
       if (text.length > 500) {
         const paragraphs = text.split(/\n\n+/);
         let subIdx = 0;
         for (const para of paragraphs) {
           const trimmed = para.trim();
           if (trimmed.length < 10) continue;
+          const tokens = tokenize(trimmed);
           chunks.push({
             id: `${fileName}_${heading}_${subIdx++}`,
             source: fileName,
             title: heading,
             content: trimmed,
-            bigrams: new Set(extractBigrams(trimmed)),
+            vector: computeTF(tokens),
           });
         }
       } else {
+        const tokens = tokenize(text);
         chunks.push({
           id: `${fileName}_${heading}`,
           source: fileName,
           title: heading,
           content: text,
-          bigrams: new Set(extractBigrams(text)),
+          vector: computeTF(tokens),
         });
       }
     }
   }
 
-  console.log(`[RAG] 知识库已加载: ${files.length} 个文档 → ${chunks.length} 个片段`);
+  // 全局 IDF 校准
+  applyIDF(chunks);
+
+  const totalVectors = chunks.reduce((sum, c) => sum + c.vector.size, 0);
+  console.log(`[RAG] TF-IDF 索引: ${files.length} 文档 → ${chunks.length} 片段 → ${totalVectors} 特征维度`);
   knowledgeBase = chunks;
   return chunks;
 }
 
-/**
- * 检索：返回最相关的 Top-K 片段
- */
-export function searchKnowledge(query: string, topK: number = 5): KnowledgeChunk[] {
+// ── 检索 ──
+
+export function searchKnowledge(query: string, topK?: number): KnowledgeChunk[] {
+  const k = topK ?? config.defaultTopK;
   const kb = loadKnowledgeBase();
-  const queryBigrams = new Set(extractBigrams(query));
+  if (kb.length === 0) return [];
+
+  const queryTokens = tokenize(query);
+  const queryTF = computeTF(queryTokens);
 
   const scored = kb.map(chunk => ({
     chunk,
-    score: bigramSimilarity(queryBigrams, chunk.bigrams),
+    score: cosineSimilarity(queryTF, chunk.vector),
   }));
 
-  // 按分数降序排列
   scored.sort((a, b) => b.score - a.score);
 
-  // 返回 score > 0 的 Top-K
   const results = scored
-    .filter(s => s.score > 0)
-    .slice(0, topK)
-    .map(s => s.chunk);
+    .filter(s => s.score > 0.01)
+    .slice(0, k)
+    .map(s => ({ ...s.chunk, _score: s.score }));
 
-  return results;
+  // 去重（同 source + title 只保留最高分）
+  const seen = new Set<string>();
+  const deduplicated = results.filter(r => {
+    const key = `${r.source}_${r.title}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // 清理评分字段
+  return deduplicated.map(({ _score, ...chunk }) => chunk);
 }
 
-/**
- * 将检索结果格式化为 LLM 上下文
- */
+// ── 格式化 ──
+
 export function formatRetrievedContext(chunks: KnowledgeChunk[]): string {
   if (chunks.length === 0) return '（未找到相关知识）';
-
-  return chunks.map((c, i) =>
-    `[文档${i + 1}] 来源：《${c.source}》- ${c.title}\n${c.content}`
-  ).join('\n\n');
+  return chunks
+    .map((c, i) => `[文档${i + 1}] 来源：《${c.source}》- ${c.title}\n${c.content}`)
+    .join('\n\n');
 }
 
-/**
- * 重置知识库（测试用）
- */
+// ── 重置（测试用）──
+
 export function resetKnowledgeBase(): void {
   knowledgeBase = null;
 }

@@ -11,6 +11,7 @@ import {
   searchExtractedInfos,
 } from '../data/mocks/index.js';
 import { FORUM_SECTION_NAMES, type ForumSection } from '../models/index.js';
+import { chat, isLlmAvailable } from '../core/llm/client.js';
 
 const SECTION_KEYWORDS: Record<string, ForumSection> = {
   '二手': 'secondhand',
@@ -249,4 +250,76 @@ function timeAgo(iso: string): string {
   if (hours < 24) return `${hours}小时前`;
   const days = Math.floor(hours / 24);
   return `${days}天前`;
+}
+
+
+// ═══════════════════════════════════════════════
+// AI 论坛摘要（LLM 增强 + 模板降级）
+// ═══════════════════════════════════════════════
+
+/**
+ * 自动生成论坛摘要
+ * 聚合热门帖子 + 近期活动，LLM 可用时生成自然语言摘要，否则用模板
+ */
+export async function autoSummarizeForum(): Promise<{ text: string; suggestions: string[] }> {
+  const hotPosts = getHotPosts(5);
+  const events = getActiveEvents();
+
+  const postLines = hotPosts.map(p =>
+    `【${FORUM_SECTION_NAMES[p.section]}】${p.title}（${p.replyCount}回复）`
+  );
+  const eventLines = events.slice(0, 3).map(e =>
+    `📅 ${e.summary}（${e.detail.date} ${e.detail.time || ''}）`
+  );
+
+  const dataText = [
+    '热门帖子：',
+    ...postLines,
+    '',
+    '近期活动：',
+    ...eventLines,
+  ].join('\n');
+
+  if (isLlmAvailable()) {
+    try {
+      const result = await chat(
+        [
+          {
+            role: 'system',
+            content: '你是校园助手，正在为校园论坛生成每日摘要。请用 3-5 句话概括今天的论坛热点和活动，口语化、带 emoji。返回 JSON：{"text": "摘要", "suggestions": ["追问"]}',
+          },
+          { role: 'user', content: dataText },
+        ],
+        { maxTokens: 200 },
+      );
+      if (result) {
+        return {
+          text: `📋 论坛今日速览\n\n${result.text}`,
+          suggestions: result.suggestions.length > 0
+            ? result.suggestions
+            : ['论坛首页', '有什么活动', '热门帖子'],
+        };
+      }
+    } catch {
+      // LLM 失败，降级到模板
+    }
+  }
+
+  // 模板降级
+  const summary = [
+    '📋 论坛今日速览',
+    '',
+    hotPosts.length > 0
+      ? `🔥 热门话题：${hotPosts[0].title} 等 ${hotPosts.length} 个帖子正在被热议`
+      : '论坛暂时风平浪静~',
+    events.length > 0
+      ? `📅 ${events.length} 个活动即将开始，包括 ${events[0].title}`
+      : '',
+    `\n论坛共有 ${getForumPosts().length} 个帖子，覆盖六大板块`,
+  ].filter(Boolean).join('\n');
+
+  return {
+    text: summary,
+    suggestions: ['热门帖子', '有什么活动', '最近失物', '看看二手'],
+  };
 }
